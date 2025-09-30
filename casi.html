@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Storie che Connettono - Manuale Venditori EAR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --ear-gold: #d4af37;
+            --ear-dark: #0a0a0a;
+            --ear-light: #fafafa;
+            --ear-gray: #2a2a2a;
+            --ear-accent: #1a4d6b;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--ear-dark) 0%, #1a1a1a 100%);
+            color: var(--ear-light);
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Canvas Background */
+        #story-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(180deg, rgba(26, 77, 111, 0.2) 0%, transparent 100%);
+            border-radius: 20px;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--ear-light) 0%, var(--ear-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--ear-gold);
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        /* Section Styles */
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            color: var(--ear-gold);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            color: var(--ear-light);
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Story Anatomy Flow */
+        .anatomy-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(212, 175, 55, 0.05);
+            border-radius: 12px;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .anatomy-step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .anatomy-step:hover {
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .anatomy-step:not(:last-child)::after {
+            content: "→";
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ear-gold);
+            font-size: 1.5rem;
+        }
+        
+        /* Story Example Card */
+        .story-example {
+            background: linear-gradient(135deg, rgba(26, 77, 111, 0.1), rgba(212, 175, 55, 0.05));
+            border-left: 4px solid var(--ear-gold);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        
+        .story-point {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+        
+        .story-point strong {
+            color: var(--ear-gold);
+            min-width: 120px;
+        }
+        
+        /* Story Library Cards */
+        .library-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .library-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateX(5px);
+        }
+        
+        .library-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--ear-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .library-card:hover::before {
+            width: 8px;
+        }
+        
+        .story-type {
+            font-weight: 600;
+            color: var(--ear-gold);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .story-for {
+            font-style: italic;
+            color: #aaa;
+            margin-bottom: 0.8rem;
+        }
+        
+        /* Signals Box */
+        .signals-box {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(26, 77, 111, 0.1));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .signals-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .signals-box li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .signals-box li::before {
+            content: "◈";
+            position: absolute;
+            left: 0;
+            color: var(--ear-gold);
+        }
+        
+        /* Exercise Cards */
+        .exercise-card {
+            background: rgba(26, 77, 111, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .exercise-card::before {
+            content: "ESERCIZIO";
+            position: absolute;
+            top: 10px;
+            right: -35px;
+            background: var(--ear-gold);
+            color: var(--ear-dark);
+            padding: 5px 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transform: rotate(45deg);
+        }
+        
+        .exercise-title {
+            font-weight: 600;
+            color: var(--ear-gold);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Diary Template */
+        .diary-template {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .diary-field {
+            padding: 0.5rem 0;
+            border-bottom: 1px dotted rgba(212, 175, 55, 0.2);
+        }
+        
+        .diary-field:last-child {
+            border: none;
+        }
+        
+        /* Final Story Box */
+        .final-story {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), transparent);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .final-story::before {
+            content: "📖";
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: #1a1a1a;
+            padding: 0 10px;
+            font-size: 1.5rem;
+        }
+        
+        .story-transformation {
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .transformation-item {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .transformation-arrow {
+            color: var(--ear-gold);
+            font-size: 1.2rem;
+        }
+        
+        /* Interactive Elements */
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--ear-gold);
+            cursor: pointer;
+        }
+        
+        /* Breathing Text Animation */
+        @keyframes breathe {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        
+        .breathing-text {
+            animation: breathe 4s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 1rem; }
+            .section { padding: 1.5rem; }
+            .anatomy-step:not(:last-child)::after {
+                display: none;
+            }
+            .anatomy-flow {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="story-canvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>SEZIONE 5: LE STORIE CHE CONNETTONO</h1>
+            <p class="subtitle">Quando i racconti costruiscono ponti tra essenze</p>
+        </header>
+        
+        <!-- 5.1 Perché le Storie -->
+        <section class="section">
+            <h2>5.1 Perché le Storie, Non gli Esempi</h2>
+            <p style="font-size: 1.1rem; line-height: 2;">
+                Un esempio informa.<br>
+                Una storia <strong style="color: var(--ear-gold);">trasforma</strong>.
+            </p>
+            <p style="margin-top: 1rem; font-size: 1.2rem; text-align: center;">
+                Le storie non vengono ascoltate con le orecchie, ma <span class="breathing-text" style="color: var(--ear-gold);">vissute con l'essenza</span>.
+            </p>
+        </section>
+        
+        <!-- 5.2 L'Anatomia -->
+        <section class="section">
+            <h2>5.2 L'Anatomia di una Storia Risonante</h2>
+            <p style="margin-bottom: 1.5rem;">Non è "C'era una volta...". È:</p>
+            
+            <div class="anatomy-flow">
+                <div class="anatomy-step">
+                    <strong style="color: var(--ear-gold);">Essenza</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Chi era veramente</p>
+                </div>
+                <div class="anatomy-step">
+                    <strong style="color: var(--ear-gold);">Sfida</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Cosa lo bloccava</p>
+                </div>
+                <div class="anatomy-step">
+                    <strong style="color: var(--ear-gold);">Scoperta</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Il momento di svolta</p>
+                </div>
+                <div class="anatomy-step">
+                    <strong style="color: var(--ear-gold);">Trasformazione</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Chi è diventato</p>
+                </div>
+            </div>
+            
+            <h3>Esempio:</h3>
+            <div class="story-example">
+                <div class="story-point">
+                    <strong>Essenza:</strong> 
+                    <span>Un artigiano che amava il suo lavoro ma si sentiva invisibile</span>
+                </div>
+                <div class="story-point">
+                    <strong>Sfida:</strong> 
+                    <span>I clienti cercavano prezzi bassi, non qualità</span>
+                </div>
+                <div class="story-point">
+                    <strong>Scoperta:</strong> 
+                    <span>Invece di abbassare i prezzi, ha iniziato a raccontare la storia dietro ogni oggetto</span>
+                </div>
+                <div class="story-point">
+                    <strong>Trasformazione:</strong> 
+                    <span>Ora i clienti pagano il giusto per "un pezzo di anima"</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 5.3 Come Scegliere -->
+        <section class="section">
+            <h2>5.3 Come Scegliere la Storia Giusta</h2>
+            <p style="font-size: 1.2rem; text-align: center; margin-bottom: 1.5rem;">
+                <strong style="color: var(--ear-gold);">Non esiste una storia universale.</strong><br>
+                Esiste la storia giusta <em>per questa persona, in questo momento</em>.
+            </p>
+            
+            <div class="signals-box">
+                <h3 style="margin-top: 0;">Domande guida:</h3>
+                <ul>
+                    <li>Quale emozione sta vivendo il cliente ora?</li>
+                    <li>Quale trasformazione sta cercando?</li>
+                    <li>Quale paura deve superare?</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- 5.4 La Biblioteca -->
+        <section class="section">
+            <h2>5.4 La Biblioteca delle Storie Vive</h2>
+            
+            <div class="library-card">
+                <div class="story-type">Storie di Coraggio</div>
+                <div class="story-for">Per chi ha paura di cambiare</div>
+                <p><em>Esempio:</em> Il ristorante che ha smesso di fare "tutto per tutti" e si è specializzato in una cucina - raddoppiando i clienti fedeli</p>
+            </div>
+            
+            <div class="library-card">
+                <div class="story-type">Storie di Chiarezza</div>
+                <div class="story-for">Per chi è confuso</div>
+                <p><em>Esempio:</em> Il professionista che ha smesso di offrire 20 servizi e si è focalizzato su quello in cui era insostituibile</p>
+            </div>
+            
+            <div class="library-card">
+                <div class="story-type">Storie di Fiducia</div>
+                <div class="story-for">Per chi dubita del valore</div>
+                <p><em>Esempio:</em> L'artista che ha smesso di svendersi e ha trovato clienti disposti a pagare il giusto</p>
+            </div>
+        </section>
+        
+        <!-- 5.5 Come Raccontare -->
+        <section class="section">
+            <h2>5.5 Come Raccontare con Risonanza</h2>
+            <p style="font-size: 1.2rem; text-align: center; margin-bottom: 1.5rem; color: var(--ear-gold);">
+                <strong>Non recitare. Sii autentico.</strong>
+            </p>
+            
+            <div class="signals-box">
+                <ul>
+                    <li>Usa un tono di voce naturale</li>
+                    <li>Fai pause quando servono</li>
+                    <li>Guarda il cliente negli occhi</li>
+                    <li>Lascia che la storia respiri</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- 5.6 Segnali -->
+        <section class="section">
+            <h2>5.6 Segnali che la Storia Sta Funzionando</h2>
+            <h3>Il cliente:</h3>
+            <div class="signals-box">
+                <ul>
+                    <li>Annuisce non per educazione, ma per riconoscimento</li>
+                    <li>Fa domande sul "come" non sul "quanto"</li>
+                    <li>Inizia a fare collegamenti con la sua situazione</li>
+                    <li>Dice "è esattamente quello che sto vivendo"</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- 5.7 Esercizi -->
+        <section class="section">
+            <h2>5.7 Esercizi Pratici</h2>
+            
+            <div class="exercise-card">
+                <div class="exercise-title">Esercizio dell'Essenza in 30 Secondi</div>
+                <p>Prendi un caso reale e raccontalo in 30 secondi massimo.<br>
+                   Se non riesci a catturare l'essenza in quel tempo, la storia non è ancora pronta.</p>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="story-ex1">
+                    <label for="story-ex1">Ho condensato 3 storie in 30 secondi oggi</label>
+                </div>
+            </div>
+            
+            <div class="exercise-card">
+                <div class="exercise-title">Esercizio dello Specchio Emotivo</div>
+                <p>Dopo aver raccontato una storia, chiediti:</p>
+                <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                    <li>Quale emozione volevo trasmettere?</li>
+                    <li>Quale emozione ha realmente sentito il cliente?</li>
+                    <li>Cosa posso migliorare?</li>
+                </ul>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="story-ex2">
+                    <label for="story-ex2">Ho analizzato l'impatto emotivo di una storia</label>
+                </div>
+            </div>
+            
+            <div class="exercise-card">
+                <div class="exercise-title">Esercizio dell'Archivio Vivente</div>
+                <p>Tieni un diario delle storie che funzionano. Annota non solo la storia, ma:</p>
+                <div class="diary-template">
+                    <div class="diary-field">📖 <strong>Storia:</strong> ___________________</div>
+                    <div class="diary-field">👤 <strong>Cliente:</strong> ___________________</div>
+                    <div class="diary-field">🎯 <strong>Contesto:</strong> ___________________</div>
+                    <div class="diary-field">💫 <strong>Reazione:</strong> ___________________</div>
+                    <div class="diary-field">💡 <strong>Apprendimento:</strong> ___________________</div>
+                </div>
+                <div class="checkbox-item" style="margin-top: 1rem;">
+                    <input type="checkbox" id="story-ex3">
+                    <label for="story-ex3">Ho aggiornato il mio archivio storie questa settimana</label>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 5.8 Storia Reale -->
+        <section class="section">
+            <h2>5.8 Storia Reale</h2>
+            <div class="final-story">
+                <p style="font-size: 1.1rem;">Un cliente ci disse: <em>"Tutti vogliono solo sconti."</em></p>
+                
+                <p style="margin: 1.5rem 0;">Invece di parlare di strategie di prezzo, abbiamo raccontato di un falegname che:</p>
+                
+                <div class="story-transformation">
+                    <div class="transformation-item">
+                        <span>•</span>
+                        <span>Invece di vendere "sedie", vendeva <strong style="color: var(--ear-gold);">"posti dove le famiglie si riuniscono"</strong></span>
+                    </div>
+                    <div class="transformation-item">
+                        <span>•</span>
+                        <span>Invece di parlare di "legno massello", parlava di <strong style="color: var(--ear-gold);">"alberi che aveva visto crescere"</strong></span>
+                    </div>
+                    <div class="transformation-item">
+                        <span>•</span>
+                        <span>I clienti non compravano mobili - compravano <strong style="color: var(--ear-gold);">storie da tramandare</strong></span>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 1.5rem; font-size: 1.2rem; text-align: center;">
+                    Il nostro cliente ha capito: non stava vendendo servizi - stava vendendo <span class="breathing-text" style="color: var(--ear-gold); font-weight: 600;">trasformazioni</span>.
+                </p>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // Canvas Animation - Flowing Story Lines
+        const canvas = document.getElementById('story-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // Story threads animation
+        class StoryThread {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = 0;
+                this.targetX = Math.random() * canvas.width;
+                this.targetY = canvas.height;
+                this.progress = 0;
+                this.speed = 0.002 + Math.random() * 0.003;
+                this.opacity = Math.random() * 0.3 + 0.1;
+                this.controlX1 = this.x + (Math.random() - 0.5) * 200;
+                this.controlY1 = canvas.height * 0.3;
+                this.controlX2 = this.targetX + (Math.random() - 0.5) * 200;
+                this.controlY2 = canvas.height * 0.7;
+            }
+            
+            update() {
+                this.progress += this.speed;
+                if (this.progress > 1) {
+                    this.reset();
+                }
+            }
+            
+            draw() {
+                ctx.strokeStyle = `rgba(212, 175, 55, ${this.opacity * (1 - this.progress)})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                
+                // Draw only the portion of the bezier curve up to current progress
+                const points = [];
+                for (let t = 0; t <= this.progress; t += 0.01) {
+                    const x = Math.pow(1-t, 3) * this.x + 
+                             3 * Math.pow(1-t, 2) * t * this.controlX1 + 
+                             3 * (1-t) * Math.pow(t, 2) * this.controlX2 + 
+                             Math.pow(t, 3) * this.targetX;
+                    const y = Math.pow(1-t, 3) * this.y + 
+                             3 * Math.pow(1-t, 2) * t * this.controlY1 + 
+                             3 * (1-t) * Math.pow(t, 2) * this.controlY2 + 
+                             Math.pow(t, 3) * this.targetY;
+                    points.push({x, y});
+                }
+                
+                if (points.length > 0) {
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    ctx.stroke();
+                    
+                    // Draw a glowing point at the current position
+                    const current = points[points.length - 1];
+                    ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity * 2})`;
+                    ctx.beginPath();
+                    ctx.arc(current.x, current.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        const threads = [];
+        for (let i = 0; i < 8; i++) {
+            threads.push(new StoryThread());
+        }
+        
+        let time = 0;
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            time += 0.01;
+            
+            threads.forEach(thread => {
+                thread.update();
+                thread.draw();
+            });
+            
+            // Add connecting dots
+            for (let i = 0; i < threads.length; i++) {
+                for (let j = i + 1; j < threads.length; j++) {
+                    const t1 = threads[i];
+                    const t2 = threads[j];
+                    const x1 = t1.x + (t1.targetX - t1.x) * t1.progress;
+                    const y1 = t1.y + (t1.targetY - t1.y) * t1.progress;
+                    const x2 = t2.x + (t2.targetX - t2.x) * t2.progress;
+                    const y2 = t2.y + (t2.targetY - t2.y) * t2.progress;
+                    const dist = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+                    
+                    if (dist < 150) {
+                        ctx.strokeStyle = `rgba(212, 175, 55, ${0.05 * (1 - dist/150)})`;
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        animate();
+        
+        // Save checkbox states
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            // Load saved state
+            const saved = localStorage.getItem(`storie_${checkbox.id}`);
+            if (saved === 'true') checkbox.checked = true;
+            
+            // Save on change
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(`storie_${checkbox.id}`, checkbox.checked);
+                
+                // Update section progress
+                const progress = JSON.parse(localStorage.getItem('manuale_progress') || '{}');
+                progress.sezione5 = true;
+                localStorage.setItem('manuale_progress', JSON.stringify(progress));
+            });
+        });
+        
+        // Hover effect on library cards
+        document.querySelectorAll('.library-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 5px 20px rgba(212, 175, 55, 0.2)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+</body>
+</html>
