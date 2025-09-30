@@ -1,0 +1,608 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+const SezioneAscolto = () => {
+  const canvasRef = useRef(null);
+  const [checkboxes, setCheckboxes] = useState({
+    cliente1: false, cliente2: false, cliente3: false, cliente4: false,
+    venditore1: false, venditore2: false, venditore3: false, venditore4: false
+  });
+  const [exercises, setExercises] = useState({
+    ex1: false, ex2: false, ex3: false
+  });
+
+  // Canvas: Onde sonore che pulsano
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+    };
+    
+    resize();
+    window.addEventListener('resize', resize);
+    
+    let time = 0;
+    
+    const animate = () => {
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      
+      ctx.clearRect(0, 0, w, h);
+      
+      // Onde sonore concentriche
+      ctx.strokeStyle = '#1a4d6f';
+      ctx.lineWidth = 1.5;
+      
+      for (let i = 0; i < 8; i++) {
+        ctx.globalAlpha = 0.3 - (i * 0.03);
+        ctx.beginPath();
+        
+        for (let x = 0; x < w; x += 5) {
+          const y = h / 2 + Math.sin((x + time * 100 + i * 50) * 0.01) * (30 + i * 15);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        
+        ctx.stroke();
+      }
+      
+      ctx.globalAlpha = 1;
+      time += 0.016;
+      requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  // Salva progresso
+  useEffect(() => {
+    localStorage.setItem('ascolto_checkboxes', JSON.stringify(checkboxes));
+    localStorage.setItem('ascolto_exercises', JSON.stringify(exercises));
+    
+    // Segna sezione come visitata
+    const progress = JSON.parse(localStorage.getItem('manuale_progress') || '{}');
+    progress[1] = true;
+    localStorage.setItem('manuale_progress', JSON.stringify(progress));
+  }, [checkboxes, exercises]);
+
+  const allClienteChecked = Object.keys(checkboxes)
+    .filter(k => k.startsWith('cliente'))
+    .every(k => checkboxes[k]);
+    
+  const allVenditoreChecked = Object.keys(checkboxes)
+    .filter(k => k.startsWith('venditore'))
+    .every(k => checkboxes[k]);
+
+  const allExercisesDone = Object.values(exercises).every(v => v);
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
+      color: '#fafafa',
+      fontFamily: "'Inter', -apple-system, sans-serif",
+      position: 'relative'
+    }}>
+      {/* Canvas di sfondo */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 0,
+          opacity: 0.4
+        }}
+      />
+
+      {/* Contenuto */}
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        
+        {/* Header Immersivo */}
+        <header style={{
+          background: 'linear-gradient(180deg, rgba(26, 77, 111, 0.3) 0%, transparent 100%)',
+          padding: '60px 20px 40px 20px',
+          borderBottom: '1px solid rgba(26, 77, 111, 0.3)'
+        }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              color: '#1a4d6f',
+              marginBottom: '10px',
+              fontWeight: 600
+            }}>
+              Sezione 1
+            </div>
+            <h1 style={{
+              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              marginBottom: '20px',
+              lineHeight: 1.1,
+              color: '#fafafa'
+            }}>
+              L'Ascolto Profondo
+            </h1>
+            <p style={{
+              fontSize: '1.5rem',
+              fontStyle: 'italic',
+              color: '#737373',
+              lineHeight: 1.5
+            }}>
+              Il silenzio dove nasce ogni risonanza
+            </p>
+            
+            {/* Metafora visiva: Orecchio + Paesaggio */}
+            <div style={{
+              marginTop: '40px',
+              padding: '30px',
+              background: 'rgba(26, 77, 111, 0.1)',
+              border: '1px solid rgba(26, 77, 111, 0.3)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '20px'
+            }}>
+              <div style={{ fontSize: '4rem' }}>👂</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '0.875rem', color: '#a0a0a0', fontStyle: 'italic' }}>
+                  "Ascoltare è esplorare territori interiori. Come un paesaggio montuoso che si rivela solo a chi sa fermarsi."
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main style={{
+          maxWidth: '900px',
+          margin: '60px auto',
+          padding: '0 20px'
+        }}>
+          
+          {/* 1.1 */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#1a4d6f',
+              marginBottom: '20px',
+              letterSpacing: '-0.01em'
+            }}>
+              1.1 Sentire vs Ascoltare
+            </h2>
+            
+            <p style={{ fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '20px' }}>
+              <strong>Sentire</strong> è ciò che fai con le orecchie.<br/>
+              <strong>Ascoltare</strong> è ciò che fai con l'essenza.
+            </p>
+            
+            <p style={{ fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '20px' }}>
+              Quando un cliente parla, non stai solo raccogliendo informazioni. Stai cercando la sua <strong style={{ color: '#1a4d6f' }}>frequenza fondamentale</strong> - il tono emotivo che sottende ogni parola.
+            </p>
+            
+            {/* Esercizio Box */}
+            <div style={{
+              background: 'rgba(26, 77, 111, 0.1)',
+              border: '2px solid rgba(26, 77, 111, 0.3)',
+              borderRadius: '12px',
+              padding: '30px',
+              marginTop: '30px',
+              borderLeft: '4px solid #1a4d6f'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: '#1a4d6f',
+                marginBottom: '15px'
+              }}>
+                Esercizio Pratico
+              </h4>
+              <p style={{ fontSize: '1rem', lineHeight: 1.7, marginBottom: '15px' }}>
+                La prossima volta che parli con un cliente, prova a notare:
+              </p>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                <li style={{ padding: '8px 0', paddingLeft: '25px', position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, color: '#1a4d6f' }}>→</span>
+                  Cosa dice <em>tra</em> le parole
+                </li>
+                <li style={{ padding: '8px 0', paddingLeft: '25px', position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, color: '#1a4d6f' }}>→</span>
+                  Dove la sua voce si fa più calda o più fredda
+                </li>
+                <li style={{ padding: '8px 0', paddingLeft: '25px', position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, color: '#1a4d6f' }}>→</span>
+                  Quali parole ripete senza accorgersene
+                </li>
+              </ul>
+              <p style={{ fontSize: '0.875rem', fontStyle: 'italic', color: '#737373', marginTop: '15px' }}>
+                Questi sono i <strong>segnali di risonanza</strong>.
+              </p>
+            </div>
+          </section>
+
+          {/* 1.2 */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#1a4d6f',
+              marginBottom: '20px'
+            }}>
+              1.2 I Tre Livelli dell'Ascolto
+            </h2>
+            
+            {/* Livelli in card */}
+            <div style={{ display: 'grid', gap: '20px', marginTop: '30px' }}>
+              {[
+                {
+                  level: "Livello 1: Ascolto Superficiale",
+                  desc: "Ascolti per rispondere. Cerchi punti dove inserirti, obiezioni da superare. È come navigare guardando solo la superficie dell'acqua.",
+                  color: '#8b3a3a'
+                },
+                {
+                  level: "Livello 2: Ascolto Empático",
+                  desc: "Ascolti per comprendere. Metti da parte il tuo bisogno di parlare e ti immergi nella prospettiva del cliente. Vedi sotto la superficie.",
+                  color: '#d97634'
+                },
+                {
+                  level: "Livello 3: Ascolto Risonante",
+                  desc: "Ascolti per sentire l'essenza. Non cerchi cosa il cliente vuole comprare, ma chi il cliente vuole diventare. È qui che nasce la magia.",
+                  color: '#1a4d6f'
+                }
+              ].map((item, idx) => (
+                <div key={idx} style={{
+                  background: 'rgba(26, 26, 26, 0.6)',
+                  border: `2px solid ${item.color}44`,
+                  borderRadius: '12px',
+                  padding: '25px',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <h3 style={{
+                    fontSize: '1.25rem',
+                    fontWeight: 600,
+                    color: item.color,
+                    marginBottom: '12px'
+                  }}>
+                    {item.level}
+                  </h3>
+                  <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#e5e5e5' }}>
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 1.3 Segnali */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#1a4d6f',
+              marginBottom: '20px'
+            }}>
+              1.3 Segnali che Stai Ascoltando Davvero
+            </h2>
+            
+            <div style={{ display: 'grid', gap: '30px', marginTop: '30px' }}>
+              {/* Il Cliente */}
+              <div style={{
+                background: 'rgba(26, 77, 111, 0.1)',
+                border: '1px solid rgba(26, 77, 111, 0.3)',
+                borderRadius: '12px',
+                padding: '30px'
+              }}>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#1a4d6f' }}>
+                  Il Cliente:
+                </h3>
+                {[
+                  { id: 'cliente1', text: 'Inizia a usare il "noi" invece dell\'"io"' },
+                  { id: 'cliente2', text: 'La sua postura si rilassa' },
+                  { id: 'cliente3', text: 'Fa domande che rivelano vulnerabilità' },
+                  { id: 'cliente4', text: 'Dice "esattamente!" quando parli' }
+                ].map(item => (
+                  <label key={item.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 0',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={checkboxes[item.id]}
+                      onChange={(e) => setCheckboxes({...checkboxes, [item.id]: e.target.checked})}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '1rem', color: checkboxes[item.id] ? '#1a4d6f' : '#e5e5e5' }}>
+                      {item.text}
+                    </span>
+                  </label>
+                ))}
+                {allClienteChecked && (
+                  <div style={{
+                    marginTop: '15px',
+                    padding: '12px',
+                    background: 'rgba(26, 77, 111, 0.2)',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    color: '#1a4d6f',
+                    fontStyle: 'italic'
+                  }}>
+                    ✓ Il cliente è in risonanza. Continua così.
+                  </div>
+                )}
+              </div>
+
+              {/* Tu */}
+              <div style={{
+                background: 'rgba(26, 77, 111, 0.1)',
+                border: '1px solid rgba(26, 77, 111, 0.3)',
+                borderRadius: '12px',
+                padding: '30px'
+              }}>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#1a4d6f' }}>
+                  Tu:
+                </h3>
+                {[
+                  { id: 'venditore1', text: 'Dimentichi la tua "prossima mossa"' },
+                  { id: 'venditore2', text: 'Le domande ti sorgono spontanee, non preparate' },
+                  { id: 'venditore3', text: 'Senti di poter stare in silenzio senza disagio' },
+                  { id: 'venditore4', text: 'Perdi la cognizione del tempo' }
+                ].map(item => (
+                  <label key={item.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 0',
+                    cursor: 'pointer'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={checkboxes[item.id]}
+                      onChange={(e) => setCheckboxes({...checkboxes, [item.id]: e.target.checked})}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '1rem', color: checkboxes[item.id] ? '#1a4d6f' : '#e5e5e5' }}>
+                      {item.text}
+                    </span>
+                  </label>
+                ))}
+                {allVenditoreChecked && (
+                  <div style={{
+                    marginTop: '15px',
+                    padding: '12px',
+                    background: 'rgba(26, 77, 111, 0.2)',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    color: '#1a4d6f',
+                    fontStyle: 'italic'
+                  }}>
+                    ✓ Sei in stato di flusso. Perfetto.
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* 1.4 Esercizi */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#1a4d6f',
+              marginBottom: '20px'
+            }}>
+              1.4 Esercizi per l'Ascolto Profondo
+            </h2>
+            
+            <div style={{ display: 'grid', gap: '25px', marginTop: '30px' }}>
+              {[
+                {
+                  id: 'ex1',
+                  title: "Esercizio del Minuto di Silenzio",
+                  text: "Prima di ogni incontro importante, siediti in silenzio per un minuto. Non meditare, non prepararti. Semplicemente sii presente. Arriverai all'incontro già risonante."
+                },
+                {
+                  id: 'ex2',
+                  title: "Esercizio della Domanda Unica",
+                  text: "Scegli UNA domanda essenziale per l'incontro. Non venti. Una. Esempio: \"Cosa renderebbe questo investimento irrinunciabile per te?\" Poi ascolta. Davvero."
+                },
+                {
+                  id: 'ex3',
+                  title: "Esercizio del Riflesso Essenziale",
+                  text: "Quando il cliente finisce di parlare, invece di rispondere subito, prova a dire: \"Se ho capito bene, quello che cerchi è...\" e condensa l'essenza in una frase. Se colpisci nel segno, lo vedrai negli occhi."
+                }
+              ].map(ex => (
+                <div key={ex.id} style={{
+                  background: exercises[ex.id] ? 'rgba(26, 77, 111, 0.2)' : 'rgba(26, 26, 26, 0.6)',
+                  border: exercises[ex.id] ? '2px solid #1a4d6f' : '2px solid rgba(26, 77, 111, 0.3)',
+                  borderRadius: '12px',
+                  padding: '25px',
+                  transition: 'all 0.3s ease'
+                }}>
+                  <label style={{
+                    display: 'flex',
+                    gap: '15px',
+                    cursor: 'pointer'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={exercises[ex.id]}
+                      onChange={(e) => setExercises({...exercises, [ex.id]: e.target.checked})}
+                      style={{ marginTop: '3px', width: '20px', height: '20px', cursor: 'pointer' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{
+                        fontSize: '1.125rem',
+                        fontWeight: 600,
+                        marginBottom: '10px',
+                        color: exercises[ex.id] ? '#1a4d6f' : '#fafafa'
+                      }}>
+                        {ex.title}
+                      </h4>
+                      <p style={{
+                        fontSize: '1rem',
+                        lineHeight: 1.7,
+                        color: exercises[ex.id] ? '#e5e5e5' : '#a0a0a0'
+                      }}>
+                        {ex.text}
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              ))}
+            </div>
+            
+            {allExercisesDone && (
+              <div style={{
+                marginTop: '25px',
+                padding: '20px',
+                background: 'rgba(26, 77, 111, 0.2)',
+                border: '2px solid #1a4d6f',
+                borderRadius: '12px',
+                textAlign: 'center',
+                fontSize: '1rem',
+                color: '#1a4d6f',
+                fontWeight: 500
+              }}>
+                🌀 Tutti gli esercizi completati. Sei sulla strada della risonanza.
+              </div>
+            )}
+          </section>
+
+          {/* 1.5 Storia Reale */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#1a4d6f',
+              marginBottom: '20px'
+            }}>
+              1.5 Quando l'Ascolto Crea Risonanza
+            </h2>
+            
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(26, 77, 111, 0.2) 0%, rgba(26, 77, 111, 0.1) 100%)',
+              border: '2px solid #1a4d6f',
+              borderRadius: '12px',
+              padding: '40px',
+              marginTop: '30px',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-12px',
+                left: '30px',
+                background: '#1a4d6f',
+                padding: '4px 12px',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em'
+              }}>
+                Storia Reale
+              </div>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8,
+                color: '#e5e5e5',
+                marginBottom: '20px'
+              }}>
+                Un cliente ci diceva: <em>"Voglio un sito che converta di più."</em>
+              </p>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8,
+                color: '#e5e5e5',
+                marginBottom: '20px'
+              }}>
+                Ascoltando oltre le parole, abbiamo sentito che ciò che voleva realmente era <strong style={{ color: '#1a4d6f' }}>smettere di sentirsi invisibile</strong>.
+              </p>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8,
+                color: '#e5e5e5'
+              }}>
+                Abbiamo costruito non un sito che "converte", ma un sito che <strong style={{ color: '#1a4d6f' }}>fa sentire visto</strong>. Le conversioni sono arrivate da sole.
+              </p>
+            </div>
+          </section>
+
+        </main>
+
+        {/* Footer Navigation */}
+        <footer style={{
+          borderTop: '1px solid rgba(26, 77, 111, 0.3)',
+          padding: '40px 20px',
+          marginTop: '80px'
+        }}>
+          <div style={{
+            maxWidth: '900px',
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <a href="#hub" style={{
+              color: '#737373',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              transition: 'color 0.3s ease'
+            }}>
+              ← Torna all'Hub
+            </a>
+            
+            <div style={{
+              fontSize: '0.875rem',
+              color: '#525252',
+              textAlign: 'center'
+            }}>
+              <div>Versione 1.0 • Aggiornato {new Date().toLocaleDateString('it-IT')}</div>
+              <div style={{ marginTop: '5px', fontStyle: 'italic', color: '#1a4d6f' }}>
+                Sezione 1 di 7
+              </div>
+            </div>
+            
+            <a href="#sezione2" style={{
+              color: '#1a4d6f',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              fontWeight: 500,
+              transition: 'color 0.3s ease'
+            }}>
+              Mappe di Risonanza →
+            </a>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+export default SezioneAscolto;
