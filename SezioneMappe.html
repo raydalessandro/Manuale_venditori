@@ -1,0 +1,785 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+const SezioneMappe = () => {
+  const canvasRef = useRef(null);
+  const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const [compassDirection, setCompassDirection] = useState(null);
+  const [journeyNotes, setJourneyNotes] = useState({
+    newTerritory: '',
+    unexpectedBridges: '',
+    naturalPath: ''
+  });
+
+  // Canvas: Mappa topografica animata
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+    };
+    
+    resize();
+    window.addEventListener('resize', resize);
+    
+    let time = 0;
+    
+    const animate = () => {
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      
+      ctx.clearRect(0, 0, w, h);
+      
+      // Linee topografiche
+      ctx.strokeStyle = '#2d5c3f';
+      ctx.lineWidth = 1;
+      
+      for (let i = 0; i < 12; i++) {
+        ctx.globalAlpha = 0.2 - (i * 0.015);
+        ctx.beginPath();
+        
+        for (let x = 0; x < w; x += 3) {
+          const elevation = Math.sin((x + i * 50 + time * 30) * 0.02) * 40;
+          const y = (h / 2) + elevation + (i * 30) - 180;
+          
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        
+        ctx.stroke();
+      }
+      
+      // Punti di interesse (territori)
+      const territories = [
+        { x: w * 0.2, y: h * 0.7 }, // Valle
+        { x: w * 0.5, y: h * 0.5 }, // Colline
+        { x: w * 0.8, y: h * 0.3 }  // Picchi
+      ];
+      
+      territories.forEach((t, idx) => {
+        ctx.globalAlpha = 0.4 + Math.sin(time + idx) * 0.2;
+        ctx.fillStyle = '#2d5c3f';
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Connessioni
+        if (idx < territories.length - 1) {
+          ctx.globalAlpha = 0.15;
+          ctx.strokeStyle = '#d4af37';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(t.x, t.y);
+          ctx.lineTo(territories[idx + 1].x, territories[idx + 1].y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+      
+      ctx.globalAlpha = 1;
+      time += 0.016;
+      requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  // Salva progresso
+  useEffect(() => {
+    localStorage.setItem('mappe_journey_notes', JSON.stringify(journeyNotes));
+    
+    const progress = JSON.parse(localStorage.getItem('manuale_progress') || '{}');
+    progress[2] = true;
+    localStorage.setItem('manuale_progress', JSON.stringify(progress));
+  }, [journeyNotes]);
+
+  const territories = [
+    {
+      id: 1,
+      name: "La Valle del Rumore",
+      subtitle: "Dove il cliente è ora",
+      color: "#8b3a3a",
+      icon: "🏔️",
+      characteristics: ["Confusione", "Scetticismo", "Sovraccarico informativo"],
+      signals: ["Tutti dicono la stessa cosa", "Non so da dove iniziare"],
+      objective: "Non vendergli nulla. Aiutarlo a sentire il silenzio"
+    },
+    {
+      id: 2,
+      name: "Le Colline della Scoperta",
+      subtitle: "Dove il cliente inizia a muoversi",
+      color: "#d97634",
+      icon: "⛰️",
+      characteristics: ["Curiosità", "Speranza", "Domande più profonde"],
+      signals: ["Mi piacerebbe capire come...", "E se provassimo..."],
+      objective: "Rafforzare le sue intuizioni, non imporre le tue"
+    },
+    {
+      id: 3,
+      name: "I Picchi della Risonanza",
+      subtitle: "Dove il cliente arriva naturalmente",
+      color: "#2d5c3f",
+      icon: "🏔️",
+      characteristics: ["Chiarezza", "Fiducia", "Senso di appropriazione"],
+      signals: ["Questo è esattamente ciò che cercavo", "Finalmente mi sento compreso"],
+      objective: "Celebrare la connessione, non chiudere la vendita"
+    }
+  ];
+
+  const compassDirections = [
+    { id: 'nord', label: 'Nord', desc: 'Bisogni pratici', detail: 'Cosa dice', color: '#c0c0c0' },
+    { id: 'sud', label: 'Sud', desc: 'Bisogni emotivi', detail: 'Cosa sente', color: '#d4af37' },
+    { id: 'est', label: 'Est', desc: 'Paure e resistenze', detail: 'Cosa teme', color: '#8b3a3a' },
+    { id: 'ovest', label: 'Ovest', desc: 'Speranze e desideri', detail: 'Cosa sogna', color: '#2d5c3f' }
+  ];
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
+      color: '#fafafa',
+      fontFamily: "'Inter', -apple-system, sans-serif",
+      position: 'relative'
+    }}>
+      {/* Canvas topografico */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 0,
+          opacity: 0.4
+        }}
+      />
+
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        
+        {/* Header */}
+        <header style={{
+          background: 'linear-gradient(180deg, rgba(45, 92, 63, 0.3) 0%, transparent 100%)',
+          padding: '60px 20px 40px 20px',
+          borderBottom: '1px solid rgba(45, 92, 63, 0.3)'
+        }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              color: '#2d5c3f',
+              marginBottom: '10px',
+              fontWeight: 600
+            }}>
+              Sezione 2
+            </div>
+            <h1 style={{
+              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              marginBottom: '20px',
+              lineHeight: 1.1
+            }}>
+              Le Mappe di Risonanza
+            </h1>
+            <p style={{
+              fontSize: '1.5rem',
+              fontStyle: 'italic',
+              color: '#737373',
+              lineHeight: 1.5
+            }}>
+              Navigare il territorio emotivo del cliente
+            </p>
+            
+            {/* Metafora visiva */}
+            <div style={{
+              marginTop: '40px',
+              padding: '30px',
+              background: 'rgba(45, 92, 63, 0.1)',
+              border: '1px solid rgba(45, 92, 63, 0.3)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '20px'
+            }}>
+              <div style={{ fontSize: '4rem' }}>🗺️</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '0.875rem', color: '#a0a0a0', fontStyle: 'italic' }}>
+                  "Sei un cartografo delle emozioni. Non tracci strade, ma linee di frequenza."
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main style={{
+          maxWidth: '900px',
+          margin: '60px auto',
+          padding: '0 20px'
+        }}>
+          
+          {/* 2.1 */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#2d5c3f',
+              marginBottom: '20px'
+            }}>
+              2.1 Cos'è una Mappa di Risonanza
+            </h2>
+            
+            <p style={{ fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '20px' }}>
+              Non è un funnel di vendita. Non è un percorso predefinito.
+            </p>
+            
+            <p style={{ fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '20px' }}>
+              Una <strong style={{ color: '#2d5c3f' }}>Mappa di Risonanza</strong> è la rappresentazione visiva del <strong>viaggio interiore</strong> che il cliente compie quando incontra il tuo messaggio.
+            </p>
+            
+            <div style={{
+              background: 'rgba(45, 92, 63, 0.1)',
+              border: '2px solid rgba(45, 92, 63, 0.3)',
+              borderRadius: '12px',
+              padding: '30px',
+              marginTop: '30px',
+              fontSize: '1.25rem',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              color: '#e5e5e5'
+            }}>
+              Immagina di essere un cartografo delle emozioni.<br/>
+              Non tracci strade, ma <strong style={{ color: '#2d5c3f' }}>linee di frequenza</strong>.
+            </div>
+          </section>
+
+          {/* 2.2 I Tre Territori */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#2d5c3f',
+              marginBottom: '30px'
+            }}>
+              2.2 I Tre Territori Emotivi
+            </h2>
+            
+            <div style={{ display: 'grid', gap: '30px' }}>
+              {territories.map((territory) => (
+                <div
+                  key={territory.id}
+                  onClick={() => setSelectedTerritory(selectedTerritory === territory.id ? null : territory.id)}
+                  style={{
+                    background: selectedTerritory === territory.id
+                      ? `linear-gradient(135deg, ${territory.color}33 0%, ${territory.color}11 100%)`
+                      : 'rgba(26, 26, 26, 0.6)',
+                    border: `2px solid ${selectedTerritory === territory.id ? territory.color : territory.color + '44'}`,
+                    borderRadius: '12px',
+                    padding: '30px',
+                    cursor: 'pointer',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: selectedTerritory === territory.id ? 'translateX(10px)' : 'translateX(0)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
+                    <div style={{
+                      fontSize: '3rem',
+                      filter: selectedTerritory === territory.id ? 'none' : 'grayscale(0.5)'
+                    }}>
+                      {territory.icon}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 600,
+                        color: territory.color,
+                        marginBottom: '8px'
+                      }}>
+                        Territorio {territory.id}: {territory.name}
+                      </h3>
+                      <p style={{
+                        fontSize: '1rem',
+                        fontStyle: 'italic',
+                        color: '#737373',
+                        marginBottom: '20px'
+                      }}>
+                        {territory.subtitle}
+                      </p>
+                      
+                      {selectedTerritory === territory.id && (
+                        <div style={{
+                          animation: 'fadeIn 0.4s ease-out',
+                          marginTop: '20px'
+                        }}>
+                          <div style={{ marginBottom: '20px' }}>
+                            <h4 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: territory.color, marginBottom: '10px' }}>
+                              Caratteristiche:
+                            </h4>
+                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                              {territory.characteristics.map((char, idx) => (
+                                <li key={idx} style={{ padding: '5px 0', paddingLeft: '20px', position: 'relative' }}>
+                                  <span style={{ position: 'absolute', left: 0, color: territory.color }}>•</span>
+                                  {char}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div style={{ marginBottom: '20px' }}>
+                            <h4 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: territory.color, marginBottom: '10px' }}>
+                              Segnali:
+                            </h4>
+                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                              {territory.signals.map((signal, idx) => (
+                                <li key={idx} style={{ padding: '5px 0', fontStyle: 'italic', color: '#a0a0a0' }}>
+                                  "{signal}"
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div style={{
+                            background: `${territory.color}22`,
+                            padding: '15px',
+                            borderRadius: '8px',
+                            borderLeft: `3px solid ${territory.color}`
+                          }}>
+                            <h4 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: territory.color, marginBottom: '8px' }}>
+                              Obiettivo:
+                            </h4>
+                            <p style={{ fontSize: '1rem', lineHeight: 1.6, color: '#e5e5e5' }}>
+                              {territory.objective}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {!selectedTerritory && (
+                        <div style={{
+                          fontSize: '0.875rem',
+                          color: '#737373',
+                          marginTop: '15px'
+                        }}>
+                          Clicca per esplorare →
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 2.3 Tracciare in Tempo Reale */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#2d5c3f',
+              marginBottom: '20px'
+            }}>
+              2.3 Come Tracciare una Mappa in Tempo Reale
+            </h2>
+            
+            <div style={{
+              background: 'rgba(45, 92, 63, 0.1)',
+              border: '2px solid rgba(45, 92, 63, 0.3)',
+              borderRadius: '12px',
+              padding: '30px',
+              marginTop: '30px'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: '#2d5c3f',
+                marginBottom: '20px'
+              }}>
+                Durante la conversazione:
+              </h4>
+              
+              <ol style={{ paddingLeft: '20px', lineHeight: 1.8, fontSize: '1.125rem' }}>
+                <li style={{ marginBottom: '15px' }}>
+                  <strong>Ascolta le parole-chiave</strong> che indicano il territorio emotivo
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <strong>Nota i cambiamenti di tono</strong> - quando la voce si fa più calda
+                </li>
+                <li style={{ marginBottom: '15px' }}>
+                  <strong>Riconosci i ponti</strong> - momenti in cui il cliente passa naturalmente da un territorio all'altro
+                </li>
+              </ol>
+            </div>
+            
+            {/* Esempio pratico */}
+            <div style={{
+              marginTop: '30px',
+              background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(45, 92, 63, 0.1) 100%)',
+              border: '2px solid #d4af37',
+              borderRadius: '12px',
+              padding: '30px'
+            }}>
+              <div style={{
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                color: '#d4af37',
+                marginBottom: '20px',
+                fontWeight: 600
+              }}>
+                Esempio Pratico
+              </div>
+              
+              <div style={{ display: 'grid', gap: '15px' }}>
+                <div style={{
+                  padding: '15px',
+                  background: 'rgba(139, 58, 58, 0.2)',
+                  borderLeft: '3px solid #8b3a3a',
+                  borderRadius: '6px'
+                }}>
+                  <div style={{ fontSize: '0.75rem', color: '#8b3a3a', marginBottom: '5px', fontWeight: 600 }}>
+                    VALLE DEL RUMORE
+                  </div>
+                  <p style={{ fontSize: '1rem', fontStyle: 'italic' }}>
+                    Cliente: "Sono stanco di lottare per farmi notare"
+                  </p>
+                </div>
+                
+                <div style={{
+                  padding: '15px',
+                  background: 'rgba(212, 175, 55, 0.2)',
+                  borderLeft: '3px solid #d4af37',
+                  borderRadius: '6px'
+                }}>
+                  <div style={{ fontSize: '0.75rem', color: '#d4af37', marginBottom: '5px', fontWeight: 600 }}>
+                    PONTE
+                  </div>
+                  <p style={{ fontSize: '1rem' }}>
+                    Tu: "Immagina di poter essere trovato da chi ti cerca davvero"
+                  </p>
+                </div>
+                
+                <div style={{
+                  padding: '15px',
+                  background: 'rgba(217, 118, 52, 0.2)',
+                  borderLeft: '3px solid #d97634',
+                  borderRadius: '6px'
+                }}>
+                  <div style={{ fontSize: '0.75rem', color: '#d97634', marginBottom: '5px', fontWeight: 600 }}>
+                    COLLINE DELLA SCOPERTA
+                  </div>
+                  <p style={{ fontSize: '1rem', fontStyle: 'italic' }}>
+                    Cliente: "Sarebbe un sogno..."
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 2.4 Strumenti */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#2d5c3f',
+              marginBottom: '30px'
+            }}>
+              2.4 Strumenti per la Mappatura
+            </h2>
+            
+            {/* Bussola Emotiva */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{
+                fontSize: '1.5rem',
+                fontWeight: 600,
+                color: '#2d5c3f',
+                marginBottom: '20px'
+              }}>
+                La Bussola Emotiva
+              </h3>
+              
+              <p style={{ fontSize: '1rem', marginBottom: '20px', color: '#a0a0a0' }}>
+                Quattro direzioni per orientarti:
+              </p>
+              
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '20px'
+              }}>
+                {compassDirections.map((dir) => (
+                  <div
+                    key={dir.id}
+                    onClick={() => setCompassDirection(compassDirection === dir.id ? null : dir.id)}
+                    style={{
+                      background: compassDirection === dir.id ? `${dir.color}22` : 'rgba(26, 26, 26, 0.6)',
+                      border: `2px solid ${compassDirection === dir.id ? dir.color : dir.color + '44'}`,
+                      borderRadius: '12px',
+                      padding: '25px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div style={{
+                      fontSize: '2rem',
+                      marginBottom: '10px'
+                    }}>
+                      {dir.id === 'nord' ? '⬆️' : dir.id === 'sud' ? '⬇️' : dir.id === 'est' ? '➡️' : '⬅️'}
+                    </div>
+                    <h4 style={{
+                      fontSize: '1.125rem',
+                      fontWeight: 600,
+                      color: dir.color,
+                      marginBottom: '8px'
+                    }}>
+                      {dir.label}
+                    </h4>
+                    <p style={{ fontSize: '0.875rem', color: '#a0a0a0', marginBottom: '5px' }}>
+                      {dir.desc}
+                    </p>
+                    <p style={{ fontSize: '0.875rem', fontStyle: 'italic', color: '#737373' }}>
+                      ({dir.detail})
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Sismografo */}
+            <div>
+              <h3 style={{
+                fontSize: '1.5rem',
+                fontWeight: 600,
+                color: '#2d5c3f',
+                marginBottom: '20px'
+              }}>
+                Il Sismografo della Risonanza
+              </h3>
+              
+              <p style={{ fontSize: '1rem', marginBottom: '20px', color: '#a0a0a0' }}>
+                Impara a riconoscere i "tremori" che precedono una connessione profonda:
+              </p>
+              
+              <div style={{
+                background: 'rgba(45, 92, 63, 0.1)',
+                border: '1px solid rgba(45, 92, 63, 0.3)',
+                borderRadius: '12px',
+                padding: '25px'
+              }}>
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                  {[
+                    'Un respiro più profondo',
+                    'Un momento di silenzio carico',
+                    'Un "ah" invece di un "sì"'
+                  ].map((signal, idx) => (
+                    <li key={idx} style={{
+                      padding: '12px 0',
+                      paddingLeft: '30px',
+                      position: 'relative',
+                      fontSize: '1.125rem',
+                      borderBottom: idx < 2 ? '1px solid rgba(45, 92, 63, 0.2)' : 'none'
+                    }}>
+                      <span style={{
+                        position: 'absolute',
+                        left: 0,
+                        color: '#2d5c3f',
+                        fontSize: '1.5rem'
+                      }}>
+                        📊
+                      </span>
+                      {signal}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* 2.5 Auto-Aggiornamento */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#2d5c3f',
+              marginBottom: '20px'
+            }}>
+              2.5 Mappe che si Auto-Aggiornano
+            </h2>
+            
+            <p style={{ fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '20px' }}>
+              Le nostre mappe non sono statiche. Si evolvono con ogni conversazione.
+            </p>
+            
+            <p style={{ fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '30px' }}>
+              Dopo ogni incontro, chiediti:
+            </p>
+            
+            {/* Form riflessione */}
+            <div style={{
+              background: 'rgba(45, 92, 63, 0.1)',
+              border: '2px solid rgba(45, 92, 63, 0.3)',
+              borderRadius: '12px',
+              padding: '30px'
+            }}>
+              {Object.keys(journeyNotes).map((key, idx) => {
+                const labels = {
+                  newTerritory: 'Quale nuovo territorio ho scoperto?',
+                  unexpectedBridges: 'Dove ho visto ponti che non mi aspettavo?',
+                  naturalPath: 'Quale percorso ha funzionato naturalmente?'
+                };
+                
+                return (
+                  <div key={key} style={{ marginBottom: idx < 2 ? '25px' : 0 }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      marginBottom: '10px',
+                      color: '#2d5c3f'
+                    }}>
+                      {labels[key]}
+                    </label>
+                    <textarea
+                      value={journeyNotes[key]}
+                      onChange={(e) => setJourneyNotes({...journeyNotes, [key]: e.target.value})}
+                      placeholder="Le tue riflessioni..."
+                      style={{
+                        width: '100%',
+                        minHeight: '80px',
+                        padding: '15px',
+                        background: 'rgba(26, 26, 26, 0.6)',
+                        border: '1px solid rgba(45, 92, 63, 0.3)',
+                        borderRadius: '8px',
+                        color: '#fafafa',
+                        fontSize: '1rem',
+                        fontFamily: 'inherit',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
+                );
+              })}
+              
+              {Object.values(journeyNotes).some(v => v.trim()) && (
+                <div style={{
+                  marginTop: '20px',
+                  padding: '15px',
+                  background: 'rgba(45, 92, 63, 0.2)',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  color: '#2d5c3f',
+                  fontStyle: 'italic'
+                }}>
+                  ✓ Note salvate. La tua mappa si sta evolvendo.
+                </div>
+              )}
+            </div>
+            
+            {/* Storia Reale */}
+            <div style={{
+              marginTop: '40px',
+              background: 'linear-gradient(135deg, rgba(45, 92, 63, 0.2) 0%, rgba(45, 92, 63, 0.1) 100%)',
+              border: '2px solid #2d5c3f',
+              borderRadius: '12px',
+              padding: '40px',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-12px',
+                left: '30px',
+                background: '#2d5c3f',
+                padding: '4px 12px',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em'
+              }}>
+                Storia Reale
+              </div>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8,
+                marginBottom: '20px'
+              }}>
+                Un cliente pensava di volere <em>"più visibilità sui social"</em>. La sua mappa mostrava invece che cercava <strong style={{ color: '#2d5c3f' }}>autorità nel suo settore</strong>.
+              </p>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8
+              }}>
+                Abbiamo spostato il focus da "postare di più" a "diventare un riferimento". I social sono diventati conseguenza, non obiettivo.
+              </p>
+            </div>
+          </section>
+
+        </main>
+
+        {/* Footer */}
+        <footer style={{
+          borderTop: '1px solid rgba(45, 92, 63, 0.3)',
+          padding: '40px 20px',
+          marginTop: '80px'
+        }}>
+          <div style={{
+            maxWidth: '900px',
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <a href="#sezione1" style={{
+              color: '#737373',
+              fontSize: '0.875rem',
+              textDecoration: 'none'
+            }}>
+              ← Ascolto Profondo
+            </a>
+            
+            <div style={{
+              fontSize: '0.875rem',
+              color: '#525252',
+              textAlign: 'center'
+            }}>
+              <div>Versione 1.0 • Aggiornato {new Date().toLocaleDateString('it-IT')}</div>
+              <div style={{ marginTop: '5px', fontStyle: 'italic', color: '#2d5c3f' }}>
+                Sezione 2 di 7
+              </div>
+            </div>
+            
+            <a href="#sezione3" style={{
+              color: '#2d5c3f',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              fontWeight: 500
+            }}>
+              Linguaggio Essenziale →
+            </a>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+export default SezioneMappe;
