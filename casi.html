@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gli Strumenti Viventi - Manuale Venditori EAR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --ear-gold: #d4af37;
+            --ear-dark: #0a0a0a;
+            --ear-light: #fafafa;
+            --ear-gray: #2a2a2a;
+            --ear-accent: #1a4d6b;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--ear-dark) 0%, #1a1a1a 100%);
+            color: var(--ear-light);
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Canvas Background */
+        #tools-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(180deg, rgba(26, 77, 111, 0.2) 0%, transparent 100%);
+            border-radius: 20px;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--ear-light) 0%, var(--ear-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--ear-gold);
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        /* Section Styles */
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            color: var(--ear-gold);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            color: var(--ear-light);
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Tool Cards */
+        .tool-card {
+            background: linear-gradient(135deg, rgba(26, 77, 111, 0.1), rgba(212, 175, 55, 0.05));
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .tool-card:hover {
+            background: linear-gradient(135deg, rgba(26, 77, 111, 0.15), rgba(212, 175, 55, 0.08));
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.1);
+        }
+        
+        .tool-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--ear-gold);
+            margin-bottom: 1rem;
+        }
+        
+        .tool-description {
+            margin: 0.8rem 0;
+        }
+        
+        .tool-point {
+            display: flex;
+            gap: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .tool-point strong {
+            color: var(--ear-gold);
+            min-width: 80px;
+        }
+        
+        /* Client Type Cards */
+        .client-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--ear-gold);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .client-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            padding-left: 2rem;
+        }
+        
+        .client-type {
+            font-weight: 600;
+            color: var(--ear-gold);
+            margin-bottom: 0.8rem;
+        }
+        
+        .client-approach {
+            padding-left: 1rem;
+        }
+        
+        .client-approach div {
+            margin: 0.5rem 0;
+        }
+        
+        /* Signals Box */
+        .signals-box {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(26, 77, 111, 0.1));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .signals-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .signals-box li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .signal-positive::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+        }
+        
+        .signal-negative::before {
+            content: "✗";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+        }
+        
+        /* Maintenance Grid */
+        .maintenance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .maintenance-item {
+            background: rgba(212, 175, 55, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .maintenance-item:hover {
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .maintenance-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Exercise Cards */
+        .exercise-card {
+            background: rgba(26, 77, 111, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .exercise-card::before {
+            content: "ESERCIZIO";
+            position: absolute;
+            top: 10px;
+            right: -35px;
+            background: var(--ear-gold);
+            color: var(--ear-dark);
+            padding: 5px 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transform: rotate(45deg);
+        }
+        
+        .exercise-title {
+            font-weight: 600;
+            color: var(--ear-gold);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Story Box */
+        .story-box {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), transparent);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .story-box::before {
+            content: "🔧";
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: #1a1a1a;
+            padding: 0 10px;
+            font-size: 1.5rem;
+        }
+        
+        .innovation-box {
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+        
+        /* Interactive Elements */
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--ear-gold);
+            cursor: pointer;
+        }
+        
+        /* Breathing Animation */
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        
+        .breathing {
+            animation: breathe 4s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        /* Pulse Animation */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 1rem; }
+            .section { padding: 1.5rem; }
+            .maintenance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="tools-canvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>SEZIONE 6: GLI STRUMENTI VIVENTI</h1>
+            <p class="subtitle">Quando gli attrezzi respirano con te</p>
+        </header>
+        
+        <!-- 6.1 Strumenti vs Estensioni -->
+        <section class="section">
+            <h2>6.1 Strumenti vs Estensioni</h2>
+            <p style="font-size: 1.1rem; line-height: 2;">
+                Uno <strong style="color: var(--ear-gold);">strumento morto</strong> si usa.<br>
+                Uno <strong style="color: var(--ear-gold);">strumento vivente</strong> si <span class="breathing">abita</span>.
+            </p>
+            <p style="margin-top: 1rem; font-size: 1.2rem; text-align: center;">
+                I nostri materiali non sono manuali da seguire - sono <strong style="color: var(--ear-gold);">parti del tuo corpo risonante</strong>.
+            </p>
+        </section>
+        
+        <!-- 6.2 La Cassetta degli Attrezzi -->
+        <section class="section">
+            <h2>6.2 La Cassetta degli Attrezzi Essenziale</h2>
+            
+            <div class="tool-card">
+                <div class="tool-name">Le Mappe di Risonanza</div>
+                <div class="tool-point">
+                    <strong>Non sono:</strong>
+                    <span>Diagrammi da mostrare al cliente</span>
+                </div>
+                <div class="tool-point">
+                    <strong>Sono:</strong>
+                    <span><strong style="color: var(--ear-gold);">Bussole interiori</strong> che ti orientano nell'ascolto</span>
+                </div>
+                <div class="tool-point">
+                    <strong>Come usarle:</strong>
+                    <span>Sentile, non leggerle. Lascia che guidino il tuo istinto</span>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-name">Le Domande Essenziali</div>
+                <div class="tool-point">
+                    <strong>Non sono:</strong>
+                    <span>Script da recitare</span>
+                </div>
+                <div class="tool-point">
+                    <strong>Sono:</strong>
+                    <span><strong style="color: var(--ear-gold);">Semi da piantare</strong> al momento giusto</span>
+                </div>
+                <div class="tool-point">
+                    <strong>Come usarle:</strong>
+                    <span>Lasciale emergere naturalmente dalla conversazione</span>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-name">Le Storie Risonanti</div>
+                <div class="tool-point">
+                    <strong>Non sono:</strong>
+                    <span>Esempi da citare</span>
+                </div>
+                <div class="tool-point">
+                    <strong>Sono:</strong>
+                    <span><strong style="color: var(--ear-gold);">Doni da condividere</strong> quando servono</span>
+                </div>
+                <div class="tool-point">
+                    <strong>Come usarle:</strong>
+                    <span>Offrile, non le imporre</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 6.3 L'Arte dell'Adattamento -->
+        <section class="section">
+            <h2>6.3 L'Arte dell'Adattamento</h2>
+            <p style="font-size: 1.2rem; text-align: center; margin-bottom: 1.5rem;">
+                Nessuno strumento funziona sempre.<br>
+                Il vero maestro <strong style="color: var(--ear-gold);">sente quando usare cosa</strong>.
+            </p>
+            
+            <div class="signals-box">
+                <h3 style="margin-top: 0;">Segnali che stai usando bene uno strumento:</h3>
+                <ul>
+                    <li class="signal-positive">La conversazione fluisce naturalmente</li>
+                    <li class="signal-positive">Il cliente si apre senza sforzo</li>
+                    <li class="signal-positive">Ti dimentichi dello "strumento" e sei presente</li>
+                </ul>
+            </div>
+            
+            <div class="signals-box">
+                <h3 style="margin-top: 0;">Segnali che stai forzando:</h3>
+                <ul>
+                    <li class="signal-negative">La conversazione diventa meccanica</li>
+                    <li class="signal-negative">Il cliente sembra confuso</li>
+                    <li class="signal-negative">Stai "cercando" lo strumento giusto</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- 6.4 Come Scegliere -->
+        <section class="section">
+            <h2>6.4 Come Scegliere lo Strumento Giusto</h2>
+            
+            <div class="client-card">
+                <div class="client-type">Per il Cliente Ansioso:</div>
+                <div class="client-approach">
+                    <div><strong>Strumento:</strong> Storie di fiducia</div>
+                    <div><strong>Come:</strong> Condividi storie di chi ha superato paure simili</div>
+                    <div><strong>Evita:</strong> Domande troppo profonde subito</div>
+                </div>
+            </div>
+            
+            <div class="client-card">
+                <div class="client-type">Per il Cliente Confuso:</div>
+                <div class="client-approach">
+                    <div><strong>Strumento:</strong> Mappe di risonanza</div>
+                    <div><strong>Come:</strong> Aiutalo a vedere il percorso, non i dettagli</div>
+                    <div><strong>Evita:</strong> Troppe opzioni</div>
+                </div>
+            </div>
+            
+            <div class="client-card">
+                <div class="client-type">Per il Cliente Scettico:</div>
+                <div class="client-approach">
+                    <div><strong>Strumento:</strong> Domande essenziali</div>
+                    <div><strong>Come:</strong> Fai domande che lo portino alle sue conclusioni</div>
+                    <div><strong>Evita:</strong> Cercare di convincere</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 6.5 Creare Nuovi Strumenti -->
+        <section class="section">
+            <h2>6.5 Creare Nuovi Strumenti</h2>
+            <p style="font-size: 1.2rem; text-align: center; margin-bottom: 1.5rem;">
+                I migliori strumenti <strong style="color: var(--ear-gold);">nascono dall'esperienza</strong>.
+            </p>
+            
+            <div class="signals-box">
+                <h3 style="margin-top: 0;">Quando senti che manca qualcosa:</h3>
+                <ul>
+                    <li>Ascolta cosa ti serve in quel momento</li>
+                    <li>Sperimenta qualcosa di nuovo</li>
+                    <li>Condividi con il team ciò che funziona</li>
+                </ul>
+            </div>
+            
+            <div class="innovation-box">
+                <p><strong>Esempio:</strong></p>
+                <p>Un venditore ha notato che i clienti rispondevano bene alle metafore musicali. Ha creato un "glossario musicale" per descrivere i concetti EAR. Ora è uno strumento di tutto il team.</p>
+            </div>
+        </section>
+        
+        <!-- 6.6 La Manutenzione -->
+        <section class="section">
+            <h2>6.6 La Manutenzione degli Strumenti</h2>
+            <p style="text-align: center; margin-bottom: 1.5rem;">Gli strumenti viventi hanno bisogno di cura:</p>
+            
+            <div class="maintenance-grid">
+                <div class="maintenance-item">
+                    <div class="maintenance-icon">🧹</div>
+                    <strong>Pulisci</strong>
+                    <p>quelli che non usi più</p>
+                </div>
+                <div class="maintenance-item">
+                    <div class="maintenance-icon">⚔️</div>
+                    <strong>Affila</strong>
+                    <p>quelli che usi spesso</p>
+                </div>
+                <div class="maintenance-item">
+                    <div class="maintenance-icon">🤝</div>
+                    <strong>Condividi</strong>
+                    <p>quelli che crei</p>
+                </div>
+                <div class="maintenance-item">
+                    <div class="maintenance-icon">🍃</div>
+                    <strong>Lascia andare</strong>
+                    <p>quelli che non risuonano più</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 6.7 Esercizi -->
+        <section class="section">
+            <h2>6.7 Esercizi Pratici</h2>
+            
+            <div class="exercise-card">
+                <div class="exercise-title">Esercizio dello Strumento Preferito</div>
+                <p>Scegli lo strumento che ti viene più naturale. Usalo consapevolmente per una settimana. Scopri i suoi limiti e potenzialità.</p>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="tools-ex1">
+                    <label for="tools-ex1">Ho esplorato a fondo il mio strumento preferito</label>
+                </div>
+            </div>
+            
+            <div class="exercise-card">
+                <div class="exercise-title">Esercizio dello Strumento Scomodo</div>
+                <p>Scegli lo strumento che usi meno. Sperimentalo in situazioni a basso rischio. Impara a conoscerlo.</p>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="tools-ex2">
+                    <label for="tools-ex2">Ho usato uno strumento nuovo oggi</label>
+                </div>
+            </div>
+            
+            <div class="exercise-card">
+                <div class="exercise-title">Esercizio della Creazione</div>
+                <p>Questa settimana, crea un piccolo strumento nuovo. Una domanda, una mappa, una storia. Condividila con un collega.</p>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="tools-ex3">
+                    <label for="tools-ex3">Ho creato e condiviso un nuovo strumento</label>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 6.8 Storia Reale -->
+        <section class="section">
+            <h2>6.8 Storia Reale</h2>
+            <div class="story-box">
+                <p>Un venditore era bravissimo con le domande, ma le storie gli risultavano innaturali.</p>
+                
+                <p style="margin: 1.5rem 0;">Invece di forzarsi, ha creato <strong style="color: var(--ear-gold);">"domande-narrative"</strong>:</p>
+                
+                <ul style="list-style: none; padding: 1rem; background: rgba(212, 175, 55, 0.05); border-radius: 8px;">
+                    <li style="margin: 0.5rem 0;">• Invece di raccontare una storia, faceva domande che invitavano il cliente a immaginare la sua storia</li>
+                    <li style="margin: 0.5rem 0; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
+                        <em>"Se tra un anno guardassi indietro, quale trasformazione sarebbe per te la più significativa?"</em>
+                    </li>
+                </ul>
+                
+                <p style="margin-top: 1.5rem; font-size: 1.1rem; text-align: center;">
+                    Ha trovato il suo <span class="breathing" style="color: var(--ear-gold); font-weight: 600;">modo unico</span> di usare gli strumenti.
+                </p>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // Canvas Animation - Rotating Tools
+        const canvas = document.getElementById('tools-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // Tool symbols rotating
+        class Tool {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 50 + 30;
+                this.angle = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.01;
+                this.orbitRadius = Math.random() * 100 + 50;
+                this.orbitSpeed = (Math.random() - 0.5) * 0.005;
+                this.opacity = Math.random() * 0.3 + 0.1;
+            }
+            
+            update() {
+                this.angle += this.rotationSpeed;
+                this.x += Math.cos(this.angle) * 0.2;
+                this.y += Math.sin(this.angle) * 0.2;
+                
+                // Wrap around screen
+                if (this.x < -100) this.x = canvas.width + 100;
+                if (this.x > canvas.width + 100) this.x = -100;
+                if (this.y < -100) this.y = canvas.height + 100;
+                if (this.y > canvas.height + 100) this.y = -100;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
+                // Draw tool shape (hexagon)
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI / 3) * i;
+                    const x = Math.cos(angle) * this.radius;
+                    const y = Math.sin(angle) * this.radius;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                
+                ctx.strokeStyle = `rgba(212, 175, 55, ${this.opacity})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Inner circles
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 0.3, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+        }
+        
+        const tools = [];
+        for (let i = 0; i < 12; i++) {
+            tools.push(new Tool());
+        }
+        
+        let time = 0;
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            time += 0.01;
+            
+            // Draw connections between nearby tools
+            tools.forEach((tool, i) => {
+                tools.forEach((other, j) => {
+                    if (i < j) {
+                        const dx = tool.x - other.x;
+                        const dy = tool.y - other.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < 200) {
+                            ctx.beginPath();
+                            ctx.moveTo(tool.x, tool.y);
+                            ctx.lineTo(other.x, other.y);
+                            ctx.strokeStyle = `rgba(212, 175, 55, ${0.05 * (1 - dist / 200)})`;
+                            ctx.stroke();
+                        }
+                    }
+                });
+            });
+            
+            // Update and draw tools
+            tools.forEach(tool => {
+                tool.update();
+                tool.draw();
+            });
+            
+            // Central pulsing circle
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const pulseRadius = 50 + Math.sin(time) * 10;
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(212, 175, 55, 0.1)`;
+            ctx.stroke();
+            
+            requestAnimationFrame(animate);
+        }
+        animate();
+        
+        // Save checkbox states
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            // Load saved state
+            const saved = localStorage.getItem(`strumenti_${checkbox.id}`);
+            if (saved === 'true') checkbox.checked = true;
+            
+            // Save on change
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(`strumenti_${checkbox.id}`, checkbox.checked);
+                
+                // Update section progress
+                const progress = JSON.parse(localStorage.getItem('manuale_progress') || '{}');
+                progress.sezione6 = true;
+                localStorage.setItem('manuale_progress', JSON.stringify(progress));
+            });
+        });
+        
+        // Interactive hover on tool cards
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.classList.add('pulse');
+            });
+            card.addEventListener('mouseleave', function() {
+                this.classList.remove('pulse');
+            });
+        });
+    </script>
+</body>
+</html>
