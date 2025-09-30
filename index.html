@@ -1,405 +1,486 @@
-import React, { useState, useEffect, useRef } from 'react';
-
-const ManualeHub = () => {
-  const canvasRef = useRef(null);
-  const [hoveredSection, setHoveredSection] = useState(null);
-  const [progress, setProgress] = useState({});
-  
-  // Sezioni del manuale
-  const sections = [
-    { id: 1, title: "L'Ascolto Profondo", color: "#1a4d6f", angle: 0, icon: "👂" },
-    { id: 2, title: "Le Mappe di Risonanza", color: "#2d5c3f", angle: 51.4, icon: "🗺️" },
-    { id: 3, title: "Il Linguaggio Essenziale", color: "#d4af37", angle: 102.8, icon: "🌳" },
-    { id: 4, title: "Le Domande che Aprono", color: "#c0c0c0", angle: 154.2, icon: "🔑" },
-    { id: 5, title: "Le Storie che Connettono", color: "#8b3a3a", angle: 205.6, icon: "🧵" },
-    { id: 6, title: "Gli Strumenti Viventi", color: "#d97634", angle: 257, icon: "🧰" },
-    { id: 7, title: "Il Venditore Risonante", color: "#6b4c9a", angle: 308.4, icon: "✨" }
-  ];
-
-  // Carica progresso da localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('manuale_progress');
-    if (saved) setProgress(JSON.parse(saved));
-  }, []);
-
-  // Canvas: Spirale Aurea Vivente
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
-    };
-    
-    resize();
-    window.addEventListener('resize', resize);
-    
-    const PHI = 1.618033988749;
-    let time = 0;
-    
-    const animate = () => {
-      const w = canvas.width / dpr;
-      const h = canvas.height / dpr;
-      const cx = w / 2;
-      const cy = h / 2;
-      
-      ctx.clearRect(0, 0, w, h);
-      
-      // Spirale aurea principale
-      ctx.strokeStyle = '#d4af37';
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.3;
-      
-      ctx.beginPath();
-      for (let i = 0; i < 360; i++) {
-        const angle = i * Math.PI / 180;
-        const radius = 10 * Math.pow(PHI, angle / (Math.PI / 2));
-        const x = cx + radius * Math.cos(angle + time * 0.1);
-        const y = cy + radius * Math.sin(angle + time * 0.1);
-        
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      
-      // Nodi delle sezioni
-      sections.forEach((section, idx) => {
-        const angle = (section.angle + time * 5) * Math.PI / 180;
-        const radius = 120 + Math.sin(time * 0.5 + idx) * 10;
-        const x = cx + radius * Math.cos(angle);
-        const y = cy + radius * Math.sin(angle);
-        
-        // Glow effect
-        ctx.globalAlpha = 0.6;
-        ctx.fillStyle = section.color;
-        ctx.shadowColor = section.color;
-        ctx.shadowBlur = 20;
-        ctx.beginPath();
-        ctx.arc(x, y, hoveredSection === idx ? 12 : 8, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.shadowBlur = 0;
-        
-        // Connessioni tra nodi
-        if (idx < sections.length - 1) {
-          const nextAngle = (sections[idx + 1].angle + time * 5) * Math.PI / 180;
-          const nextX = cx + (120 + Math.sin(time * 0.5 + idx + 1) * 10) * Math.cos(nextAngle);
-          const nextY = cy + (120 + Math.sin(time * 0.5 + idx + 1) * 10) * Math.sin(nextAngle);
-          
-          ctx.globalAlpha = 0.2;
-          ctx.strokeStyle = '#d4af37';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(nextX, nextY);
-          ctx.stroke();
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manuale del Venditore Risonante - EAR Method</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      });
-      
-      // Particelle respiranti
-      for (let i = 0; i < 30; i++) {
-        const angle = (i * 12 + time * 20) * Math.PI / 180;
-        const radius = 60 + Math.sin(time + i * 0.5) * 20;
-        const x = cx + radius * Math.cos(angle);
-        const y = cy + radius * Math.sin(angle);
         
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = '#d4af37';
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      ctx.globalAlpha = 1;
-      time += 0.01;
-      requestAnimationFrame(animate);
-    };
+        :root {
+            --ear-gold: #d4af37;
+            --ear-dark: #0a0a0a;
+            --ear-light: #fafafa;
+            --ear-gray: #2a2a2a;
+            --ear-accent: #1a4d6b;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--ear-dark) 0%, #1a1a1a 100%);
+            color: var(--ear-light);
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        #main-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, transparent 100%);
+            border-radius: 20px;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--ear-light) 0%, var(--ear-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--ear-gold);
+            font-style: italic;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+        
+        .description {
+            font-size: 1.2rem;
+            color: #737373;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .progress-container {
+            margin: 2rem auto;
+            max-width: 600px;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #737373;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37 0%, #b8941f 100%);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+        
+        .sections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .section-card {
+            background: rgba(26, 26, 26, 0.6);
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-card:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--ear-gold);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+        }
+        
+        .section-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            filter: grayscale(0.3);
+            transition: filter 0.3s ease;
+        }
+        
+        .section-card:hover .section-icon {
+            filter: none;
+        }
+        
+        .section-number {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ear-gold);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        
+        .section-description {
+            font-size: 0.9rem;
+            color: #737373;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .section-arrow {
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .section-card:hover .section-arrow {
+            transform: translateX(5px);
+        }
+        
+        .completed {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 8px;
+            height: 8px;
+            background: var(--ear-gold);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--ear-gold);
+        }
+        
+        .quote-section {
+            margin: 4rem 0;
+            padding: 3rem;
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 15px;
+            border-left: 4px solid var(--ear-gold);
+            backdrop-filter: blur(10px);
+        }
+        
+        .quote-text {
+            font-size: 1.4rem;
+            font-style: italic;
+            line-height: 1.7;
+            margin: 0;
+            color: #e5e5e5;
+        }
+        
+        .quote-author {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--ear-gold);
+            font-weight: 500;
+        }
+        
+        footer {
+            margin-top: 4rem;
+            padding: 2rem 0;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            text-align: center;
+        }
+        
+        .footer-info {
+            font-size: 0.9rem;
+            color: #737373;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-secret {
+            font-size: 0.8rem;
+            color: #525252;
+            font-style: italic;
+        }
+        
+        .secret-code {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--ear-gold);
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .container { padding: 1rem; }
+            .sections-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .section-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="main-canvas"></canvas>
     
-    animate();
-    
-    return () => window.removeEventListener('resize', resize);
-  }, [hoveredSection]);
-
-  const totalProgress = Object.keys(progress).length;
-  const progressPercent = (totalProgress / sections.length) * 100;
-
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
-      color: '#fafafa',
-      fontFamily: "'Inter', -apple-system, sans-serif",
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 0
-        }}
-      />
-
-      <header style={{
-        position: 'relative',
-        zIndex: 10,
-        padding: '40px 20px',
-        textAlign: 'center',
-        borderBottom: '1px solid rgba(212, 175, 55, 0.2)'
-      }}>
-        <div style={{
-          fontSize: '0.875rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.2em',
-          color: '#d4af37',
-          marginBottom: '10px',
-          fontWeight: 500
-        }}>
-          Manuale del Venditore Risonante
-        </div>
-        <h1 style={{
-          fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-          fontWeight: 700,
-          letterSpacing: '-0.02em',
-          margin: '10px 0 20px 0',
-          lineHeight: 1.1
-        }}>
-          La Vendita che Risuona
-        </h1>
-        <p style={{
-          fontSize: '1.25rem',
-          color: '#737373',
-          maxWidth: '600px',
-          margin: '0 auto',
-          lineHeight: 1.6
-        }}>
-          Non istruzioni da seguire, ma frequenze da riconoscere
-        </p>
-      </header>
-
-      <div style={{
-        position: 'relative',
-        zIndex: 10,
-        maxWidth: '800px',
-        margin: '40px auto',
-        padding: '0 20px'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '10px',
-          fontSize: '0.875rem',
-          color: '#737373'
-        }}>
-          <span>Il Tuo Percorso</span>
-          <span>{totalProgress}/7 frequenze esplorate</span>
-        </div>
-        <div style={{
-          height: '4px',
-          background: 'rgba(212, 175, 55, 0.2)',
-          borderRadius: '2px',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            height: '100%',
-            background: 'linear-gradient(90deg, #d4af37 0%, #b8941f 100%)',
-            width: `${progressPercent}%`,
-            transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: '0 0 20px rgba(212, 175, 55, 0.5)'
-          }} />
-        </div>
-      </div>
-
-      <main style={{
-        position: 'relative',
-        zIndex: 10,
-        maxWidth: '1000px',
-        margin: '60px auto',
-        padding: '0 20px'
-      }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '20px',
-          marginTop: '40px'
-        }}>
-          {sections.map((section, idx) => (
-            <div
-              key={section.id}
-              onMouseEnter={() => setHoveredSection(idx)}
-              onMouseLeave={() => setHoveredSection(null)}
-              style={{
-                background: hoveredSection === idx 
-                  ? `linear-gradient(135deg, ${section.color}22 0%, ${section.color}11 100%)`
-                  : 'rgba(26, 26, 26, 0.6)',
-                border: `2px solid ${hoveredSection === idx ? section.color : 'rgba(212, 175, 55, 0.2)'}`,
-                borderRadius: '12px',
-                padding: '30px',
-                cursor: 'pointer',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                transform: hoveredSection === idx ? 'translateY(-8px)' : 'translateY(0)',
-                boxShadow: hoveredSection === idx 
-                  ? `0 20px 40px ${section.color}44`
-                  : 'none',
-                backdropFilter: 'blur(10px)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              {progress[section.id] && (
-                <div style={{
-                  position: 'absolute',
-                  top: '15px',
-                  right: '15px',
-                  width: '8px',
-                  height: '8px',
-                  background: section.color,
-                  borderRadius: '50%',
-                  boxShadow: `0 0 10px ${section.color}`
-                }} />
-              )}
-
-              <div style={{
-                fontSize: '2.5rem',
-                marginBottom: '15px',
-                filter: hoveredSection === idx ? 'none' : 'grayscale(0.5)'
-              }}>
-                {section.icon}
-              </div>
-              
-              <div style={{
-                fontSize: '0.75rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.15em',
-                color: section.color,
-                marginBottom: '8px',
-                fontWeight: 600
-              }}>
-                Sezione {section.id}
-              </div>
-              
-              <h3 style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                marginBottom: '12px',
-                lineHeight: 1.3
-              }}>
-                {section.title}
-              </h3>
-              
-              <div style={{
-                fontSize: '0.875rem',
-                color: '#737373',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginTop: '15px'
-              }}>
-                <span>Esplora</span>
-                <span style={{
-                  transform: hoveredSection === idx ? 'translateX(5px)' : 'translateX(0)',
-                  transition: 'transform 0.3s ease'
-                }}>
-                  →
-                </span>
-              </div>
+    <div class="container">
+        <header>
+            <div style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--ear-gold); margin-bottom: 1rem; font-weight: 500;">
+                Manuale del Venditore Risonante
             </div>
-          ))}
+            <h1>La Vendita che Risuona</h1>
+            <p class="subtitle">Non istruzioni da seguire, ma frequenze da riconoscere</p>
+            <p class="description">
+                Un approccio rivoluzionario alla vendita basato sul Metodo EAR: 
+                Empatia, Autenticità e Risonanza.
+            </p>
+        </header>
+
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>Il Tuo Percorso</span>
+                <span id="progress-text">0/7 frequenze esplorate</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
         </div>
 
-        <div style={{
-          marginTop: '80px',
-          padding: '40px',
-          background: 'rgba(212, 175, 55, 0.05)',
-          border: '1px solid rgba(212, 175, 55, 0.2)',
-          borderRadius: '12px',
-          borderLeft: '4px solid #d4af37',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <blockquote style={{
-            fontSize: '1.25rem',
-            fontStyle: 'italic',
-            lineHeight: 1.7,
-            margin: 0,
-            color: '#e5e5e5'
-          }}>
-            "Un venditore risonante non convince. Rivela. Non persuade. Amplifica ciò che il cliente già sente ma non ha ancora le parole per dire."
-          </blockquote>
-          <div style={{
-            marginTop: '20px',
-            fontSize: '0.875rem',
-            color: '#d4af37',
-            fontWeight: 500
-          }}>
-            — Dal Metodo EAR
-          </div>
-        </div>
-      </main>
+        <div class="sections-grid">
+            <a href="ascolto.html" class="section-card" data-section="1">
+                <div class="section-icon">👂</div>
+                <div class="section-number">Sezione 1</div>
+                <h3 class="section-title">L'Ascolto Profondo</h3>
+                <p>Quando l'ascolto diventa arte e l'arte diventa connessione</p>
+                <div class="section-description">
+                    <span>Esplora</span>
+                    <span class="section-arrow">→</span>
+                </div>
+            </a>
 
-      <footer style={{
-        position: 'relative',
-        zIndex: 10,
-        marginTop: '100px',
-        padding: '40px 20px',
-        borderTop: '1px solid rgba(212, 175, 55, 0.2)',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          fontSize: '0.875rem',
-          color: '#737373',
-          marginBottom: '20px'
-        }}>
-          <p style={{ margin: '5px 0' }}>
-            Versione 1.0 • Aggiornato {new Date().toLocaleDateString('it-IT')}
-          </p>
-          <p style={{ margin: '5px 0', color: '#d4af37' }}>
-            Manuale vivente • Cresce con il team
-          </p>
+            <a href="frequenza.html" class="section-card" data-section="2">
+                <div class="section-icon">🗺️</div>
+                <div class="section-number">Sezione 2</div>
+                <h3 class="section-title">Le Mappe di Risonanza</h3>
+                <p>Navigare nel territorio emotivo del cliente</p>
+                <div class="section-description">
+                    <span>Esplora</span>
+                    <span class="section-arrow">→</span>
+                </div>
+            </a>
+
+            <a href="essenza.html" class="section-card" data-section="3">
+                <div class="section-icon">🌳</div>
+                <div class="section-number">Sezione 3</div>
+                <h3 class="section-title">Il Linguaggio Essenziale</h3>
+                <p>Quando le parole diventano ponti, non muri</p>
+                <div class="section-description">
+                    <span>Esplora</span>
+                    <span class="section-arrow">→</span>
+                </div>
+            </a>
+
+            <a href="casi.html" class="section-card" data-section="4">
+                <div class="section-icon">🔑</div>
+                <div class="section-number">Sezione 4</div>
+                <h3 class="section-title">Le Domande che Aprono</h3>
+                <p>L'arte di fare domande che creano aperture</p>
+                <div class="section-description">
+                    <span>Esplora</span>
+                    <span class="section-arrow">→</span>
+                </div>
+            </a>
+
+            <a href="offerta.html" class="section-card" data-section="5">
+                <div class="section-icon">🧵</div>
+                <div class="section-number">Sezione 5</div>
+                <h3 class="section-title">Le Storie che Connettono</h3>
+                <p>Raccontare per connettere, connettere per vendere</p>
+                <div class="section-description">
+                    <span>Esplora</span>
+                    <span class="section-arrow">→</span>
+                </div>
+            </a>
+
+            <a href="strumenti.html" class="section-card" data-section="6">
+                <div class="section-icon">🧰</div>
+                <div class="section-number">Sezione 6</div>
+                <h3 class="section-title">Gli Strumenti Viventi</h3>
+                <p>Quando gli attrezzi respirano con te</p>
+                <div class="section-description">
+                    <span>Esplora</span>
+                    <span class="section-arrow">→</span>
+                </div>
+            </a>
+
+            <a href="obiezioni.html" class="section-card" data-section="7">
+                <div class="section-icon">✨</div>
+                <div class="section-number">Sezione 7</div>
+                <h3 class="section-title">Il Venditore Risonante</h3>
+                <p>L'evoluzione finale: da venditore a facilitatore</p>
+                <div class="section-description">
+                    <span>Esplora</span>
+                    <span class="section-arrow">→</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="quote-section">
+            <blockquote class="quote-text">
+                "Un venditore risonante non convince. Rivela. Non persuade. Amplifica ciò che il cliente già sente ma non ha ancora le parole per dire."
+            </blockquote>
+            <div class="quote-author">— Dal Metodo EAR</div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-info">
+            <p style="margin: 5px 0;">Versione 1.0 • Aggiornato <span id="current-date"></span></p>
+            <p style="margin: 5px 0; color: var(--ear-gold);">Manuale vivente • Cresce con il team</p>
         </div>
         
-        <div style={{
-          fontSize: '0.75rem',
-          color: '#525252',
-          fontStyle: 'italic'
-        }}>
-          Premi F12 e scrivi: <code style={{ 
-            background: 'rgba(212, 175, 55, 0.1)', 
-            padding: '2px 6px', 
-            borderRadius: '3px',
-            color: '#d4af37'
-          }}>Manuale.segreti()</code>
+        <div class="footer-secret">
+            Premi F12 e scrivi: <code class="secret-code">Manuale.segreti()</code>
         </div>
-      </footer>
-    </div>
-  );
-};
+    </footer>
 
-if (typeof window !== 'undefined') {
-  window.Manuale = {
-    segreti: () => {
-      console.log('%c🌀 HAI TROVATO LA FREQUENZA NASCOSTA', 'font-size: 20px; color: #d4af37; font-weight: bold;');
-      console.log('%c\nTips Segreti:\n', 'font-size: 14px; color: #fafafa;');
-      console.log('%c1. Se il cliente parla più di te, stai vincendo', 'color: #d4af37');
-      console.log('%c2. La pausa è uno strumento, non un vuoto', 'color: #d4af37');
-      console.log('%c3. Quando non sai cosa dire, fai una domanda onesta', 'color: #d4af37');
-      console.log('%c4. Il "no" oggi può essere "sì" domani', 'color: #d4af37');
-      console.log('%c5. Offri una frequenza, non un prodotto', 'color: #d4af37');
-    }
-  };
-}
-
-export default ManualeHub;
+    <script>
+        // Canvas Animation - Golden Spiral
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        const PHI = 1.618033988749;
+        let time = 0;
+        
+        function animate() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            
+            ctx.clearRect(0, 0, w, h);
+            
+            // Golden spiral
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.3;
+            
+            ctx.beginPath();
+            for (let i = 0; i < 360; i++) {
+                const angle = i * Math.PI / 180;
+                const radius = 10 * Math.pow(PHI, angle / (Math.PI / 2));
+                const x = cx + radius * Math.cos(angle + time * 0.1);
+                const y = cy + radius * Math.sin(angle + time * 0.1);
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Floating particles
+            for (let i = 0; i < 30; i++) {
+                const angle = (i * 12 + time * 20) * Math.PI / 180;
+                const radius = 60 + Math.sin(time + i * 0.5) * 20;
+                const x = cx + radius * Math.cos(angle);
+                const y = cy + radius * Math.sin(angle);
+                
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = '#d4af37';
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.globalAlpha = 1;
+            time += 0.01;
+            requestAnimationFrame(animate);
+        }
+        animate();
+        
+        // Progress tracking
+        function updateProgress() {
+            const progress = JSON.parse(localStorage.getItem('manuale_progress') || '{}');
+            const completedSections = Object.keys(progress).length;
+            const progressPercent = (completedSections / 7) * 100;
+            
+            document.getElementById('progress-text').textContent = `${completedSections}/7 frequenze esplorate`;
+            document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+            
+            // Show completed indicators
+            document.querySelectorAll('.section-card').forEach(card => {
+                const sectionId = card.dataset.section;
+                if (progress[sectionId]) {
+                    if (!card.querySelector('.completed')) {
+                        const indicator = document.createElement('div');
+                        indicator.className = 'completed';
+                        card.appendChild(indicator);
+                    }
+                }
+            });
+        }
+        
+        // Update current date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('it-IT');
+        
+        // Initialize progress
+        updateProgress();
+        
+        // Check progress on page load
+        window.addEventListener('storage', updateProgress);
+        
+        // Console secrets
+        window.Manuale = {
+            segreti: () => {
+                console.log('%c🌀 HAI TROVATO LA FREQUENZA NASCOSTA', 'font-size: 20px; color: #d4af37; font-weight: bold;');
+                console.log('%c\nTips Segreti:\n', 'font-size: 14px; color: #fafafa;');
+                console.log('%c1. Se il cliente parla più di te, stai vincendo', 'color: #d4af37');
+                console.log('%c2. La pausa è uno strumento, non un vuoto', 'color: #d4af37');
+                console.log('%c3. Quando non sai cosa dire, fai una domanda onesta', 'color: #d4af37');
+                console.log('%c4. Il "no" oggi può essere "sì" domani', 'color: #d4af37');
+                console.log('%c5. Offri una frequenza, non un prodotto', 'color: #d4af37');
+            }
+        };
+    </script>
+</body>
+</html>
