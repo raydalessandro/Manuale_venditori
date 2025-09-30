@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Venditore Risonante - Manuale Venditori EAR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --ear-gold: #d4af37;
+            --ear-dark: #0a0a0a;
+            --ear-light: #fafafa;
+            --ear-gray: #2a2a2a;
+            --ear-accent: #1a4d6b;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--ear-dark) 0%, #1a1a1a 100%);
+            color: var(--ear-light);
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Canvas Background */
+        #essence-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(180deg, rgba(26, 77, 111, 0.2) 0%, transparent 100%);
+            border-radius: 20px;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--ear-light) 0%, var(--ear-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--ear-gold);
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        /* Section Styles */
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            color: var(--ear-gold);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            color: var(--ear-light);
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* State Cards */
+        .state-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .state-resonance {
+            border-left: 4px solid #4ade80;
+            background: linear-gradient(to right, rgba(74, 222, 128, 0.05), transparent);
+        }
+        
+        .state-disharmony {
+            border-left: 4px solid #ef4444;
+            background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
+        }
+        
+        .state-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .state-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .state-card li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .state-resonance li::before {
+            content: "◈";
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+        }
+        
+        .state-disharmony li::before {
+            content: "◈";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+        }
+        
+        /* Ritual Cards */
+        .ritual-card {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(26, 77, 111, 0.08));
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .ritual-card:hover {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(26, 77, 111, 0.12));
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.1);
+        }
+        
+        .ritual-time {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #1a1a1a;
+            padding: 0 10px;
+            color: var(--ear-gold);
+            font-weight: 600;
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .ritual-item {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+        
+        .ritual-item strong {
+            color: var(--ear-gold);
+        }
+        
+        /* Nourish Grid */
+        .nourish-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+        
+        .nourish-box {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nourish-positive {
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        
+        .nourish-negative {
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .nourish-box:hover {
+            transform: scale(1.05);
+        }
+        
+        .nourish-box h4 {
+            color: var(--ear-gold);
+            margin-bottom: 1rem;
+        }
+        
+        .nourish-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .nourish-box li {
+            padding: 0.3rem 0;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+        
+        .nourish-positive li::before {
+            content: "+";
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+            font-weight: bold;
+        }
+        
+        .nourish-negative li::before {
+            content: "-";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+            font-weight: bold;
+        }
+        
+        /* Promise Card */
+        .promise-card {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(26, 77, 111, 0.1));
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .promise-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .promise-text {
+            position: relative;
+            z-index: 1;
+            font-size: 1.1rem;
+            line-height: 2;
+            color: var(--ear-light);
+        }
+        
+        .promise-text em {
+            color: var(--ear-gold);
+            font-style: normal;
+            font-weight: 600;
+        }
+        
+        /* Community Cards */
+        .community-card {
+            background: rgba(26, 77, 111, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 3px solid var(--ear-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .community-card:hover {
+            background: rgba(26, 77, 111, 0.15);
+            padding-left: 2rem;
+        }
+        
+        /* Final Message */
+        .final-message {
+            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1), transparent);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+            text-align: center;
+        }
+        
+        .final-message h2 {
+            border: none;
+            margin-bottom: 1rem;
+        }
+        
+        .final-message p {
+            font-size: 1.1rem;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        /* Breathing Animation */
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.03); opacity: 1; }
+        }
+        
+        .breathing {
+            animation: breathe 4s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        /* Glow Animation */
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 5px rgba(212, 175, 55, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8), 0 0 30px rgba(212, 175, 55, 0.6); }
+        }
+        
+        .glowing {
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        /* Interactive Elements */
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--ear-gold);
+            cursor: pointer;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 1rem; }
+            .section { padding: 1.5rem; }
+            .nourish-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="essence-canvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>SEZIONE 7: IL VENDITORE RISONANTE</h1>
+            <p class="subtitle">Prendersi cura della propria essenza per servire meglio</p>
+        </header>
+        
+        <!-- 7.1 La Sorgente -->
+        <section class="section">
+            <h2>7.1 La Sorgente della Risonanza</h2>
+            <p style="font-size: 1.2rem; text-align: center; line-height: 2;">
+                Non puoi aiutare gli altri a trovare la loro frequenza se hai perso la tua.<br>
+                La vendita risonante non è una tecnica - è <span class="breathing" style="color: var(--ear-gold); font-weight: 600;">uno stato dell'essere</span>.
+            </p>
+        </section>
+        
+        <!-- 7.2 I Segnali -->
+        <section class="section">
+            <h2>7.2 I Segnali della Tua Risonanza</h2>
+            
+            <div class="state-card state-resonance">
+                <h3 style="margin-top: 0;">Quando Sei in Risonanza:</h3>
+                <ul>
+                    <li>Le conversazioni fluiscono senza sforzo</li>
+                    <li>Dimentichi le "tecniche" e sei semplicemente presente</li>
+                    <li>I clienti si aprono naturalmente</li>
+                    <li>Finisci le giornate energizzato, non svuotato</li>
+                </ul>
+            </div>
+            
+            <div class="state-card state-disharmony">
+                <h3 style="margin-top: 0;">Quando Sei in Disarmonia:</h3>
+                <ul>
+                    <li>Forzi le conversazioni</li>
+                    <li>Reciti invece di essere</li>
+                    <li>Ti senti stanco e frustrato</li>
+                    <li>I clienti sembrano distanti</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- 7.3 La Pratica Quotidiana -->
+        <section class="section">
+            <h2>7.3 La Pratica Quotidiana della Risonanza</h2>
+            
+            <div class="ritual-card">
+                <span class="ritual-time">MATTINO</span>
+                <h3 style="margin-top: 0;">Il Rituale del Mattino</h3>
+                <p style="margin-bottom: 1rem;">Prima di iniziare:</p>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>5 minuti di silenzio</strong> - non per pianificare, ma per essere presenti</div>
+                </div>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>1 intenzione</strong> - non un obiettivo, ma un modo di essere ("Oggi voglio ascoltare davvero")</div>
+                </div>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>1 gratitudine</strong> - per qualcosa di specifico</div>
+                </div>
+                <div class="checkbox-item" style="margin-top: 1rem;">
+                    <input type="checkbox" id="morning-ritual">
+                    <label for="morning-ritual">Ho completato il rituale del mattino</label>
+                </div>
+            </div>
+            
+            <div class="ritual-card">
+                <span class="ritual-time">POMERIGGIO</span>
+                <h3 style="margin-top: 0;">Il Check-in del Pomeriggio</h3>
+                <p style="margin-bottom: 1rem;">A metà giornata:</p>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>Come mi sento?</strong> - Onestamente, senza giudizio</div>
+                </div>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>Dove ho sentito risonanza?</strong> - Riconosci i momenti di connessione autentica</div>
+                </div>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>Cosa posso lasciare andare?</strong> - Quale tensione, preoccupazione, aspettativa</div>
+                </div>
+                <div class="checkbox-item" style="margin-top: 1rem;">
+                    <input type="checkbox" id="afternoon-checkin">
+                    <label for="afternoon-checkin">Ho fatto il check-in del pomeriggio</label>
+                </div>
+            </div>
+            
+            <div class="ritual-card">
+                <span class="ritual-time">SERA</span>
+                <h3 style="margin-top: 0;">Il Rilascio della Sera</h3>
+                <p style="margin-bottom: 1rem;">Prima di finire:</p>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>3 cose che ho imparato</strong> - non dai successi, ma dalle conversazioni</div>
+                </div>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>1 cosa che lascio andare</strong> - un insuccesso, una preoccupazione</div>
+                </div>
+                <div class="ritual-item">
+                    <span>•</span>
+                    <div><strong>1 apprezzamento</strong> - per un cliente, un collega, te stesso</div>
+                </div>
+                <div class="checkbox-item" style="margin-top: 1rem;">
+                    <input type="checkbox" id="evening-release">
+                    <label for="evening-release">Ho completato il rilascio della sera</label>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 7.4 Nutrire l'Essenza -->
+        <section class="section">
+            <h2>7.4 Nutrire la Propria Essenza</h2>
+            <p style="text-align: center; margin-bottom: 1.5rem;">La risonanza si esaurisce se non la nutriamo:</p>
+            
+            <div class="nourish-grid">
+                <div class="nourish-box nourish-positive">
+                    <h4>Cosa Nutre:</h4>
+                    <ul>
+                        <li>Tempo in natura</li>
+                        <li>Silenzio vero</li>
+                        <li>Conversazioni significative</li>
+                        <li>Attività creative</li>
+                        <li>Lettura che ispira</li>
+                    </ul>
+                </div>
+                
+                <div class="nourish-box nourish-negative">
+                    <h4>Cosa Svuota:</h4>
+                    <ul>
+                        <li>Sovraccarico di informazioni</li>
+                        <li>Rumore costante</li>
+                        <li>Conversazioni superficiali</li>
+                        <li>Multitasking compulsivo</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 7.5 Riconoscere e Risanare -->
+        <section class="section">
+            <h2>7.5 Riconoscere e Risanare le Disarmonie</h2>
+            
+            <div class="community-card">
+                <h3 style="margin-top: 0;">Quando Perdi il Centro:</h3>
+                <p><strong>Sintomi:</strong> Irritabilità, stanchezza, cinismo</p>
+                <p><strong>Rimedi:</strong> Riduci le attività, ritorna al silenzio, chiedi aiuto</p>
+            </div>
+            
+            <div class="community-card">
+                <h3 style="margin-top: 0;">Quando Bruci la Risonanza:</h3>
+                <p><strong>Sintomi:</strong> Sentire che "tutti i clienti sono uguali", meccanicità</p>
+                <p><strong>Rimedi:</strong> Cambia prospettiva, cerca storie nuove, ricorda il "perché"</p>
+            </div>
+        </section>
+        
+        <!-- 7.6 La Comunità -->
+        <section class="section">
+            <h2>7.6 La Comunità Risonante</h2>
+            <p style="text-align: center; margin-bottom: 1.5rem;">Non siamo isole. La nostra risonanza si alimenta nella comunità:</p>
+            
+            <div class="community-card">
+                <h3 style="margin-top: 0;">Con i Colleghi:</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li>• Condividi storie vere, non solo successi</li>
+                    <li>• Ascolta senza giudizio</li>
+                    <li>• Celebra le connessioni autentiche</li>
+                </ul>
+            </div>
+            
+            <div class="community-card">
+                <h3 style="margin-top: 0;">Con il Team:</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li>• Crea spazi per la condivisione dell'essenza</li>
+                    <li>• Riconosci non i numeri, ma le connessioni</li>
+                    <li>• Sostieni chi è in disarmonia</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- 7.7 L'Evoluzione -->
+        <section class="section">
+            <h2>7.7 L'Evoluzione del Venditore Risonante</h2>
+            <p style="margin-bottom: 1.5rem;">Non si finisce mai di imparare. Ogni cliente, ogni conversazione è un'opportunità per:</p>
+            
+            <div style="text-align: center; font-size: 1.2rem;">
+                <p style="margin: 1rem 0;">• <strong style="color: var(--ear-gold);">Conoscerti</strong> meglio</p>
+                <p style="margin: 1rem 0;">• <strong style="color: var(--ear-gold);">Crescere</strong> nella consapevolezza</p>
+                <p style="margin: 1rem 0;">• <strong style="color: var(--ear-gold);">Servire</strong> più profondamente</p>
+            </div>
+        </section>
+        
+        <!-- 7.8 La Promessa -->
+        <section class="section">
+            <h2>7.8 La Promessa del Venditore Risonante</h2>
+            <div class="promise-card">
+                <div class="promise-text">
+                    "Non venderò mai nulla che non creda possa veramente servire.<br>
+                    Non fingerò mai un interesse che non sento.<br>
+                    Non manipolerò mai per chiudere una vendita.<br>
+                    <em>La mia ricompensa non sarà la commissione, ma la connessione autentica.</em><br>
+                    Perché so che quando sono in risonanza con me stesso,<br>
+                    posso aiutare gli altri a trovare la loro frequenza."
+                </div>
+            </div>
+            
+            <div class="checkbox-item" style="margin-top: 2rem;">
+                <input type="checkbox" id="promise-signed">
+                <label for="promise-signed" style="font-weight: 600; color: var(--ear-gold);">Ho letto e accetto questa promessa</label>
+            </div>
+        </section>
+        
+        <!-- Final Message -->
+        <div class="final-message">
+            <h2 class="glowing">MANUALE COMPLETATO</h2>
+            <p>
+                Questo non è la fine, ma l'inizio del tuo viaggio come venditore risonante.<br>
+                Il manuale crescerà con te, con le tue scoperte, con le tue intuizioni.<br>
+                È vivo quanto lo sei tu.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Canvas Animation - Essence Waves
+        const canvas = document.getElementById('essence-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // Wave class for breathing effect
+        class Wave {
+            constructor(y, amplitude, frequency, speed) {
+                this.baseY = y;
+                this.amplitude = amplitude;
+                this.frequency = frequency;
+                this.speed = speed;
+                this.phase = Math.random() * Math.PI * 2;
+            }
+            
+            draw(time) {
+                ctx.beginPath();
+                ctx.moveTo(0, this.baseY);
+                
+                for (let x = 0; x <= canvas.width; x += 5) {
+                    const y = this.baseY + 
+                             Math.sin((x * this.frequency) + (time * this.speed) + this.phase) * 
+                             this.amplitude * (1 + Math.sin(time * 0.5) * 0.3);
+                    ctx.lineTo(x, y);
+                }
+                
+                ctx.strokeStyle = `rgba(212, 175, 55, 0.1)`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+        
+        // Create multiple waves
+        const waves = [];
+        for (let i = 0; i < 5; i++) {
+            waves.push(new Wave(
+                canvas.height * (0.2 + i * 0.15),
+                20 + Math.random() * 30,
+                0.01 + Math.random() * 0.02,
+                0.5 + Math.random() * 0.5
+            ));
+        }
+        
+        // Center breathing circle
+        class BreathingCircle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.baseRadius = 80;
+                this.breathSpeed = 0.02;
+            }
+            
+            draw(time) {
+                const breathRadius = this.baseRadius + Math.sin(time * this.breathSpeed) * 20;
+                
+                // Multiple circles for depth
+                for (let i = 3; i > 0; i--) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, breathRadius * (i / 3), 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(212, 175, 55, ${0.05 * (4 - i)})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                // Inner glow
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, breathRadius);
+                gradient.addColorStop(0, 'rgba(212, 175, 55, 0.1)');
+                gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, breathRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        const centerCircle = new BreathingCircle(canvas.width / 2, canvas.height / 2);
+        
+        let time = 0;
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            time += 0.01;
+            
+            // Draw waves
+            waves.forEach(wave => wave.draw(time));
+            
+            // Draw center breathing circle
+            centerCircle.x = canvas.width / 2;
+            centerCircle.y = canvas.height / 2;
+            centerCircle.draw(time);
+            
+            // Add floating particles
+            for (let i = 0; i < 3; i++) {
+                const x = (canvas.width * 0.2) + (i * canvas.width * 0.3) + Math.sin(time + i) * 50;
+                const y = canvas.height / 2 + Math.cos(time * 0.7 + i) * 100;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 3 + Math.sin(time * 2 + i) * 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(212, 175, 55, ${0.3 + Math.sin(time + i) * 0.2})`;
+                ctx.fill();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        animate();
+        
+        // Save checkbox states
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            // Load saved state
+            const saved = localStorage.getItem(`venditore_${checkbox.id}`);
+            if (saved === 'true') checkbox.checked = true;
+            
+            // Save on change
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(`venditore_${checkbox.id}`, checkbox.checked);
+                
+                // Update section progress
+                const progress = JSON.parse(localStorage.getItem('manuale_progress') || '{}');
+                progress.sezione7 = true;
+                localStorage.setItem('manuale_progress', JSON.stringify(progress));
+                
+                // Special effect for promise
+                if (checkbox.id === 'promise-signed' && checkbox.checked) {
+                    checkbox.parentElement.style.background = 'rgba(212, 175, 55, 0.1)';
+                    checkbox.parentElement.style.transition = 'all 1s ease';
+                }
+            });
+        });
+        
+        // Track daily rituals completion
+        const today = new Date().toDateString();
+        const rituals = ['morning-ritual', 'afternoon-checkin', 'evening-release'];
+        
+        rituals.forEach(ritual => {
+            const checkbox = document.getElementById(ritual);
+            if (checkbox) {
+                // Check if already done today
+                const lastDone = localStorage.getItem(`${ritual}_date`);
+                if (lastDone !== today) {
+                    checkbox.checked = false;
+                }
+                
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                        localStorage.setItem(`${ritual}_date`, today);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
