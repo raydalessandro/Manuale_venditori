@@ -1,0 +1,918 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+const SezioneLinguaggio = () => {
+  const canvasRef = useRef(null);
+  const [selectedWord, setSelectedWord] = useState(null);
+  const [translations, setTranslations] = useState({
+    leadNurturing: '',
+    contentMarketing: '',
+    seo: '',
+    ux: ''
+  });
+  const [audioRecorded, setAudioRecorded] = useState(false);
+
+  // Canvas: Albero con radici complesse e chioma semplice
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+    };
+    
+    resize();
+    window.addEventListener('resize', resize);
+    
+    let time = 0;
+    
+    const animate = () => {
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      const centerX = w / 2;
+      const groundY = h * 0.6;
+      
+      ctx.clearRect(0, 0, w, h);
+      
+      // Radici complesse (sotto terra)
+      ctx.strokeStyle = '#737373';
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.3;
+      
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, groundY);
+        
+        let x = centerX + (i - 2) * 40;
+        let y = groundY;
+        
+        for (let j = 0; j < 8; j++) {
+          x += (Math.random() - 0.5) * 30;
+          y += 20 + Math.sin(time + i) * 5;
+          ctx.lineTo(x, y);
+        }
+        
+        ctx.stroke();
+      }
+      
+      // Tronco
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(centerX, groundY);
+      ctx.lineTo(centerX + Math.sin(time * 0.5) * 5, groundY - 100);
+      ctx.stroke();
+      
+      // Chioma semplice (sopra terra)
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 2;
+      
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2;
+        const branchX = centerX + Math.cos(angle) * 60;
+        const branchY = groundY - 100 + Math.sin(angle) * 60;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, groundY - 100);
+        ctx.quadraticCurveTo(
+          centerX + Math.cos(angle) * 30,
+          groundY - 120,
+          branchX + Math.sin(time + i) * 3,
+          branchY
+        );
+        ctx.stroke();
+        
+        // Foglie
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = '#d4af37';
+        ctx.beginPath();
+        ctx.arc(branchX, branchY, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.globalAlpha = 1;
+      time += 0.02;
+      requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  // Salva progresso
+  useEffect(() => {
+    localStorage.setItem('linguaggio_translations', JSON.stringify(translations));
+    
+    const progress = JSON.parse(localStorage.getItem('manuale_progress') || '{}');
+    progress[3] = true;
+    localStorage.setItem('manuale_progress', JSON.stringify(progress));
+  }, [translations]);
+
+  const wordPairs = [
+    { bad: "Funnel", good: "Percorso", type: "oggetto → esperienza" },
+    { bad: "Conversione", good: "Scelta", type: "oggetto → esperienza" },
+    { bad: "Lead", good: "Persona", type: "oggetto → esperienza" },
+    { bad: "ROI", good: "Valore", type: "oggetto → esperienza" },
+    { bad: "Ottimizzazione", good: "Miglioramento", type: "oggetto → esperienza" }
+  ];
+
+  const vocabulary = [
+    { from: "Problema", to: "Opportunità di miglioramento" },
+    { from: "Costo", to: "Investimento" },
+    { from: "Contratto", to: "Accordo di collaborazione" },
+    { from: "Vendere", to: "Condividere valore" },
+    { from: "Cliente", to: "Partner" }
+  ];
+
+  const dialogues = [
+    {
+      scenario: "Un cliente preoccupato sui costi",
+      old: "Il ROI giustifica l'investimento",
+      new: "Immagina di svegliarti tra un anno con 48 articoli che lavorano per te 24/7. Quanto varrebbe la tranquillità?"
+    },
+    {
+      scenario: "Un cliente indeciso",
+      old: "Dobbiamo chiudere entro fine mese",
+      new: "Prenditi il tempo che ti serve. La cosa importante è che la scelta sia giusta per te"
+    }
+  ];
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
+      color: '#fafafa',
+      fontFamily: "'Inter', -apple-system, sans-serif",
+      position: 'relative'
+    }}>
+      {/* Canvas albero */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 0,
+          opacity: 0.4
+        }}
+      />
+
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        
+        {/* Header */}
+        <header style={{
+          background: 'linear-gradient(180deg, rgba(212, 175, 55, 0.3) 0%, transparent 100%)',
+          padding: '60px 20px 40px 20px',
+          borderBottom: '1px solid rgba(212, 175, 55, 0.3)'
+        }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              color: '#d4af37',
+              marginBottom: '10px',
+              fontWeight: 600
+            }}>
+              Sezione 3
+            </div>
+            <h1 style={{
+              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              marginBottom: '20px',
+              lineHeight: 1.1
+            }}>
+              Il Linguaggio Essenziale
+            </h1>
+            <p style={{
+              fontSize: '1.5rem',
+              fontStyle: 'italic',
+              color: '#737373',
+              lineHeight: 1.5
+            }}>
+              Quando le parole diventano ponti, non muri
+            </p>
+            
+            {/* Metafora visiva */}
+            <div style={{
+              marginTop: '40px',
+              padding: '30px',
+              background: 'rgba(212, 175, 55, 0.1)',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '20px'
+            }}>
+              <div style={{ fontSize: '4rem' }}>🌳</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '0.875rem', color: '#a0a0a0', fontStyle: 'italic' }}>
+                  "Albero con radici complesse e chioma semplice. La complessità rimane nascosta, la chiarezza emerge."
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main style={{
+          maxWidth: '900px',
+          margin: '60px auto',
+          padding: '0 20px'
+        }}>
+          
+          {/* 3.1 */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#d4af37',
+              marginBottom: '20px'
+            }}>
+              3.1 Il Potere delle Parole Risonanti
+            </h2>
+            
+            <p style={{ fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '20px' }}>
+              Le parole non sono solo suoni. Sono <strong style={{ color: '#d4af37' }}>frequenze</strong> che possono:
+            </p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '30px' }}>
+              <div style={{
+                padding: '30px',
+                background: 'rgba(139, 58, 58, 0.2)',
+                border: '2px solid #8b3a3a',
+                borderRadius: '12px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🧱</div>
+                <p style={{ fontSize: '1.125rem', fontWeight: 600, color: '#8b3a3a' }}>
+                  Creare muri di incomprensione
+                </p>
+              </div>
+              
+              <div style={{
+                padding: '30px',
+                background: 'rgba(212, 175, 55, 0.2)',
+                border: '2px solid #d4af37',
+                borderRadius: '12px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🌉</div>
+                <p style={{ fontSize: '1.125rem', fontWeight: 600, color: '#d4af37' }}>
+                  Costruire ponti di connessione
+                </p>
+              </div>
+            </div>
+            
+            <div style={{
+              marginTop: '30px',
+              padding: '25px',
+              background: 'rgba(212, 175, 55, 0.1)',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '12px',
+              fontSize: '1.25rem',
+              fontStyle: 'italic',
+              textAlign: 'center'
+            }}>
+              Il linguaggio essenziale non è "semplice".<br/>
+              È <strong style={{ color: '#d4af37' }}>potente nella sua chiarezza</strong>.
+            </div>
+          </section>
+
+          {/* 3.2 Traduzione */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#d4af37',
+              marginBottom: '30px'
+            }}>
+              3.2 Traduzione dal Tecnico all'Essenziale
+            </h2>
+            
+            <div style={{ display: 'grid', gap: '30px' }}>
+              {[
+                {
+                  before: "Implementiamo una strategia SEO on-page ottimizzata per la user experience",
+                  after: "Facciamo in modo che chi cerca ciò che fai, ti trovi facilmente e si senta a casa"
+                },
+                {
+                  before: "Creiamo touchpoint multicanale per aumentare l'engagement",
+                  after: "Parliamo con le persone dove già si trovano, con un'unica voce riconoscibile"
+                }
+              ].map((ex, idx) => (
+                <div key={idx} style={{
+                  background: 'rgba(26, 26, 26, 0.6)',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(212, 175, 55, 0.3)'
+                }}>
+                  <div style={{
+                    padding: '20px',
+                    background: 'rgba(139, 58, 58, 0.2)',
+                    borderBottom: '1px solid rgba(212, 175, 55, 0.3)'
+                  }}>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      color: '#8b3a3a',
+                      marginBottom: '10px',
+                      fontWeight: 600
+                    }}>
+                      ❌ Invece di dire:
+                    </div>
+                    <p style={{
+                      fontSize: '1rem',
+                      lineHeight: 1.7,
+                      color: '#e5e5e5',
+                      fontStyle: 'italic',
+                      textDecoration: 'line-through',
+                      opacity: 0.7
+                    }}>
+                      "{ex.before}"
+                    </p>
+                  </div>
+                  
+                  <div style={{ padding: '20px', background: 'rgba(212, 175, 55, 0.1)' }}>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      color: '#d4af37',
+                      marginBottom: '10px',
+                      fontWeight: 600
+                    }}>
+                      ✓ Prova:
+                    </div>
+                    <p style={{
+                      fontSize: '1.125rem',
+                      lineHeight: 1.7,
+                      color: '#fafafa',
+                      fontWeight: 500
+                    }}>
+                      "{ex.after}"
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 3.3 Parole Distanza vs Prossimità */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#d4af37',
+              marginBottom: '30px'
+            }}>
+              3.3 Le Parole che Creano Distanza vs Quelle che Creano Prossimità
+            </h2>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '30px'
+            }}>
+              {wordPairs.map((pair, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedWord(selectedWord === idx ? null : idx)}
+                  style={{
+                    background: selectedWord === idx 
+                      ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%)'
+                      : 'rgba(26, 26, 26, 0.6)',
+                    border: `2px solid ${selectedWord === idx ? '#d4af37' : 'rgba(212, 175, 55, 0.3)'}`,
+                    borderRadius: '12px',
+                    padding: '25px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    transform: selectedWord === idx ? 'scale(1.05)' : 'scale(1)'
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '15px'
+                  }}>
+                    <div style={{
+                      padding: '8px 12px',
+                      background: 'rgba(139, 58, 58, 0.3)',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem',
+                      color: '#8b3a3a',
+                      textDecoration: 'line-through'
+                    }}>
+                      {pair.bad}
+                    </div>
+                    <div style={{ fontSize: '1.5rem' }}>→</div>
+                    <div style={{
+                      padding: '8px 12px',
+                      background: 'rgba(212, 175, 55, 0.3)',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem',
+                      color: '#d4af37',
+                      fontWeight: 600
+                    }}>
+                      {pair.good}
+                    </div>
+                  </div>
+                  
+                  {selectedWord === idx && (
+                    <div style={{
+                      fontSize: '0.875rem',
+                      color: '#a0a0a0',
+                      fontStyle: 'italic',
+                      paddingTop: '15px',
+                      borderTop: '1px solid rgba(212, 175, 55, 0.2)',
+                      animation: 'fadeIn 0.3s ease-out'
+                    }}>
+                      {pair.type}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <div style={{
+              marginTop: '30px',
+              padding: '25px',
+              background: 'rgba(139, 58, 58, 0.1)',
+              border: '1px solid rgba(139, 58, 58, 0.3)',
+              borderRadius: '12px',
+              borderLeft: '4px solid #8b3a3a'
+            }}>
+              <p style={{ fontSize: '1rem', lineHeight: 1.7, color: '#e5e5e5' }}>
+                Le prime parlano di <strong>oggetti</strong>, non di persone.<br/>
+                Le seconde parlano di <strong>esperienze umane</strong>.
+              </p>
+            </div>
+          </section>
+
+          {/* 3.4 Vocabolario */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#d4af37',
+              marginBottom: '30px'
+            }}>
+              3.4 Il Vocabolario della Risonanza
+            </h2>
+            
+            <div style={{
+              background: 'rgba(212, 175, 55, 0.1)',
+              border: '2px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '12px',
+              padding: '30px'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: '#d4af37',
+                marginBottom: '25px'
+              }}>
+                Sostituisci:
+              </h4>
+              
+              {vocabulary.map((item, idx) => (
+                <div key={idx} style={{
+                  padding: '20px 0',
+                  borderBottom: idx < vocabulary.length - 1 ? '1px solid rgba(212, 175, 55, 0.2)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px'
+                }}>
+                  <div style={{
+                    flex: 1,
+                    fontSize: '1.125rem',
+                    color: '#737373',
+                    textDecoration: 'line-through'
+                  }}>
+                    {item.from}
+                  </div>
+                  <div style={{ fontSize: '1.5rem', color: '#d4af37' }}>→</div>
+                  <div style={{
+                    flex: 1,
+                    fontSize: '1.125rem',
+                    fontWeight: 600,
+                    color: '#d4af37'
+                  }}>
+                    {item.to}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 3.5 Dialoghi */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#d4af37',
+              marginBottom: '30px'
+            }}>
+              3.5 Esempi di Dialoghi Risonanti
+            </h2>
+            
+            <div style={{ display: 'grid', gap: '30px' }}>
+              {dialogues.map((dialogue, idx) => (
+                <div key={idx} style={{
+                  background: 'rgba(26, 26, 26, 0.6)',
+                  border: '2px solid rgba(212, 175, 55, 0.3)',
+                  borderRadius: '12px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    padding: '20px',
+                    background: 'rgba(212, 175, 55, 0.1)',
+                    borderBottom: '1px solid rgba(212, 175, 55, 0.3)'
+                  }}>
+                    <h4 style={{
+                      fontSize: '1rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      color: '#d4af37'
+                    }}>
+                      Scenario {idx + 1}: {dialogue.scenario}
+                    </h4>
+                  </div>
+                  
+                  <div style={{ padding: '25px' }}>
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{
+                        fontSize: '0.75rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        color: '#8b3a3a',
+                        marginBottom: '10px'
+                      }}>
+                        ❌ Vecchio approccio:
+                      </div>
+                      <p style={{
+                        fontSize: '1rem',
+                        lineHeight: 1.7,
+                        color: '#a0a0a0',
+                        fontStyle: 'italic',
+                        paddingLeft: '20px',
+                        borderLeft: '2px solid #8b3a3a'
+                      }}>
+                        "{dialogue.old}"
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <div style={{
+                        fontSize: '0.75rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        color: '#d4af37',
+                        marginBottom: '10px'
+                      }}>
+                        ✓ Nuovo approccio:
+                      </div>
+                      <p style={{
+                        fontSize: '1.125rem',
+                        lineHeight: 1.7,
+                        color: '#fafafa',
+                        paddingLeft: '20px',
+                        borderLeft: '3px solid #d4af37',
+                        fontWeight: 500
+                      }}>
+                        "{dialogue.new}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 3.6 Esercizi */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#d4af37',
+              marginBottom: '30px'
+            }}>
+              3.6 Esercizi per Sviluppare il Linguaggio Essenziale
+            </h2>
+            
+            {/* Esercizio 1: Traduzione Umana */}
+            <div style={{
+              background: 'rgba(212, 175, 55, 0.1)',
+              border: '2px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '12px',
+              padding: '30px',
+              marginBottom: '30px'
+            }}>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: '#d4af37',
+                marginBottom: '20px'
+              }}>
+                Esercizio della Traduzione Umana
+              </h3>
+              
+              <p style={{ fontSize: '1rem', marginBottom: '20px', color: '#a0a0a0' }}>
+                Prendi una frase tecnica del marketing e traducila in linguaggio umano:
+              </p>
+              
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {[
+                  { term: 'Lead nurturing', placeholder: 'es: Coltivare relazioni', key: 'leadNurturing' },
+                  { term: 'Content marketing', placeholder: 'es: Condividere storie utili', key: 'contentMarketing' }
+                ].map(item => (
+                  <div key={item.key}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '8px',
+                      color: '#d4af37'
+                    }}>
+                      {item.term} →
+                    </label>
+                    <input
+                      type="text"
+                      value={translations[item.key]}
+                      onChange={(e) => setTranslations({...translations, [item.key]: e.target.value})}
+                      placeholder={item.placeholder}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        background: 'rgba(26, 26, 26, 0.6)',
+                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        borderRadius: '6px',
+                        color: '#fafafa',
+                        fontSize: '1rem',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Esercizio 2: Una Parola */}
+            <div style={{
+              background: 'rgba(212, 175, 55, 0.1)',
+              border: '2px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '12px',
+              padding: '30px',
+              marginBottom: '30px'
+            }}>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: '#d4af37',
+                marginBottom: '20px'
+              }}>
+                Esercizio dell'Una Parola
+              </h3>
+              
+              <p style={{ fontSize: '1rem', marginBottom: '20px', color: '#a0a0a0' }}>
+                Per ogni concetto complesso, trova UNA parola che ne catturi l'essenza:
+              </p>
+              
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {[
+                  { term: 'Search Engine Optimization', placeholder: 'es: Visibilità', key: 'seo' },
+                  { term: 'User Experience', placeholder: 'es: Comodità', key: 'ux' }
+                ].map(item => (
+                  <div key={item.key}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '8px',
+                      color: '#d4af37'
+                    }}>
+                      {item.term} →
+                    </label>
+                    <input
+                      type="text"
+                      value={translations[item.key]}
+                      onChange={(e) => setTranslations({...translations, [item.key]: e.target.value})}
+                      placeholder={item.placeholder}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        background: 'rgba(26, 26, 26, 0.6)',
+                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        borderRadius: '6px',
+                        color: '#fafafa',
+                        fontSize: '1rem',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              {Object.values(translations).some(v => v.trim()) && (
+                <div style={{
+                  marginTop: '20px',
+                  padding: '12px',
+                  background: 'rgba(212, 175, 55, 0.2)',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  color: '#d4af37',
+                  fontStyle: 'italic'
+                }}>
+                  ✓ Traduzioni salvate. Stai sviluppando il linguaggio essenziale.
+                </div>
+              )}
+            </div>
+            
+            {/* Esercizio 3: Specchio */}
+            <div style={{
+              background: 'rgba(212, 175, 55, 0.1)',
+              border: '2px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '12px',
+              padding: '30px'
+            }}>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: '#d4af37',
+                marginBottom: '20px'
+              }}>
+                Esercizio dello Specchio
+              </h3>
+              
+              <p style={{ fontSize: '1rem', marginBottom: '20px', color: '#a0a0a0' }}>
+                Registrati mentre parli con un cliente. Ascoltati dopo:
+              </p>
+              
+              <ul style={{ listStyle: 'none', padding: 0, marginBottom: '20px' }}>
+                {[
+                  'Quante parole tecniche usi?',
+                  'Ti capirebbe tua nonna?',
+                  'Le tue parole costruiscono ponti o muri?'
+                ].map((q, idx) => (
+                  <li key={idx} style={{
+                    padding: '10px 0',
+                    paddingLeft: '25px',
+                    position: 'relative',
+                    fontSize: '1rem'
+                  }}>
+                    <span style={{ position: 'absolute', left: 0, color: '#d4af37' }}>→</span>
+                    {q}
+                  </li>
+                ))}
+              </ul>
+              
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '15px',
+                background: audioRecorded ? 'rgba(212, 175, 55, 0.2)' : 'rgba(26, 26, 26, 0.6)',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={audioRecorded}
+                  onChange={(e) => setAudioRecorded(e.target.checked)}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '1rem', color: audioRecorded ? '#d4af37' : '#e5e5e5' }}>
+                  Ho registrato e ascoltato una mia conversazione
+                </span>
+              </label>
+            </div>
+          </section>
+
+          {/* 3.7 Storia Reale */}
+          <section style={{ marginBottom: '60px' }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              color: '#d4af37',
+              marginBottom: '30px'
+            }}>
+              3.7 Quando le Parole Trovano la Frequenza Giusta
+            </h2>
+            
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%)',
+              border: '2px solid #d4af37',
+              borderRadius: '12px',
+              padding: '40px',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-12px',
+                left: '30px',
+                background: '#d4af37',
+                padding: '4px 12px',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: '#0a0a0a'
+              }}>
+                Storia Reale
+              </div>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8,
+                marginBottom: '20px'
+              }}>
+                Un cliente ci diceva: <em>"Non voglio essere un'altra azienda che 'fa social'."</em>
+              </p>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8,
+                marginBottom: '20px'
+              }}>
+                Abbiamo risposto: <strong style={{ color: '#d4af37' }}>"Non facciamo social. Creiamo conversazioni che contano."</strong>
+              </p>
+              
+              <p style={{
+                fontSize: '1.125rem',
+                lineHeight: 1.8
+              }}>
+                Quella semplice sostituzione ha cambiato tutto. Abbiamo smesso di parlare di "post" e iniziato a parlare di <strong style={{ color: '#d4af37' }}>"voci"</strong>.
+              </p>
+            </div>
+          </section>
+
+        </main>
+
+        {/* Footer */}
+        <footer style={{
+          borderTop: '1px solid rgba(212, 175, 55, 0.3)',
+          padding: '40px 20px',
+          marginTop: '80px'
+        }}>
+          <div style={{
+            maxWidth: '900px',
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <a href="#sezione2" style={{
+              color: '#737373',
+              fontSize: '0.875rem',
+              textDecoration: 'none'
+            }}>
+              ← Mappe di Risonanza
+            </a>
+            
+            <div style={{
+              fontSize: '0.875rem',
+              color: '#525252',
+              textAlign: 'center'
+            }}>
+              <div>Versione 1.0 • Aggiornato {new Date().toLocaleDateString('it-IT')}</div>
+              <div style={{ marginTop: '5px', fontStyle: 'italic', color: '#d4af37' }}>
+                Sezione 3 di 7
+              </div>
+            </div>
+            
+            <a href="#sezione4" style={{
+              color: '#d4af37',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              fontWeight: 500
+            }}>
+              Domande che Aprono →
+            </a>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+export default SezioneLinguaggio;
